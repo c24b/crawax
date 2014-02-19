@@ -10,6 +10,9 @@ from random import choice
 from boilerpipe.extract import Extractor
 import Queue
 import __future__
+#Debug
+import pdb
+
 
 from abpy import Filter
 adblock = Filter(file('easylist.txt'))
@@ -130,17 +133,20 @@ class Page():
 class Crawl():
 
 	def __init__(self, cfg):
-	
+		
 		if 'query' in cfg.keys() and cfg['query'] != '':
 			self.query = cfg['query']
+			pdb.set_trace()
 		else: self.query = False
 
 		if 'bing_account_key' in cfg.keys() and cfg['bing_account_key'] != '':
 			self.bing = cfg['bing_account_key']
+			pdb.set_trace()
 		else: self.bing = False
 
 		if 'local_seeds' in cfg.keys() and cfg['local_seeds'] != '':
 			self.local = cfg['local_seeds']
+		pdb.set_trace()
 		else: self.local = False
 
 		self.res = {}
@@ -148,10 +154,12 @@ class Crawl():
 
 	def do_page(self, url):
 		p = Page(url, self.query)
+		pdb.set_trace()
 		self.seen.add(p.url)
 		if p.pre_check() and p.retrieve() and p.is_relevant():
+			pdb.set_trace()
 			p.extract_content()
-
+			pdb.set_trace()
 			self.res[p.url] = {
 				'pointers' : set(),
 				# 'source' : p.src,
@@ -234,10 +242,11 @@ def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_see
 
 
 if __name__ == '__main__':
+
 	crawtext('algues vertes OR algue verte', 				# query
-	 		0, 												# depth
-	 		'results.json',		# absolute path to result file
-	 		bing_account_key=key = open("./pass_").read(), # Bing Search API key
-	 		local_seeds='myseeds.txt') 		# absolute path to local seeds
+	 		10, 												# depth
+	 		'./results.json',		# absolute path to result file
+	 		bing_account_key='e65T6A8LAjDjFVzCqX2G/7uRwPZMnKKk/wDG2jK2/8=', # Bing Search API key
+	 		local_seeds='./myseeds.txt') 		# absolute path to local seeds
 	pass
 
