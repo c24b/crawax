@@ -234,11 +234,10 @@ def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_see
 
 
 if __name__ == '__main__':
-
-	# crawtext('algues vertes OR algue verte', 				# query
-	# 		0, 												# depth
-	# 		'/Users/mazieres/code/crawtext/results.json',		# absolute path to result file
-	# 		bing_account_key='============================================', # Bing Search API key
-	# 		local_seeds='/Users/mazieres/code/crawtext/myseeds.txt') 		# absolute path to local seeds
+	crawtext('algues vertes OR algue verte', 				# query
+	 		0, 												# depth
+	 		'results.json',		# absolute path to result file
+	 		bing_account_key=key = open("./pass_").read(), # Bing Search API key
+	 		local_seeds='myseeds.txt') 		# absolute path to local seeds
 	pass
 
