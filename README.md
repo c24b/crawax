@@ -9,6 +9,8 @@ Crawtext save the JSON-formatted results in a file. Each result is a pertinent c
 + `content`: The extracted content from the page in text format.
 + `outlinks`: The pages in the given dataset pointed by this page.
 
+##Requirements
+
 ## Installation
 
 Dependencies on `beautifulsoup`, `requests` and `boilerpipe`, all of them being available through [pip](http://www.pip-installer.org/en/latest/installing.html).
