@@ -10,6 +10,14 @@ Crawtext save the JSON-formatted results in a file. Each result is a pertinent c
 + `outlinks`: The pages in the given dataset pointed by this page.
 
 ##Requirements
+BeautifulSoup==3.2.1
+JPype1==0.5.4.5
+argparse==1.2.1
+beautifulsoup4==4.3.2
+boilerpipe==1.2.0.0
+charade==1.0.3
+requests==2.2.1
+wsgiref==0.1.2
 
 ## Installation
 
