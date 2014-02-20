@@ -9,19 +9,17 @@ Crawtext save the JSON-formatted results in a file. Each result is a pertinent c
 + `content`: The extracted content from the page in text format.
 + `outlinks`: The pages in the given dataset pointed by this page.
 
-##Requirements
-BeautifulSoup==3.2.1
-JPype1==0.5.4.5
-argparse==1.2.1
-beautifulsoup4==4.3.2
-boilerpipe==1.2.0.0
-charade==1.0.3
-requests==2.2.1
-wsgiref==0.1.2
+## Dependencies
++ BeautifulSoup==3.2.1
++ JPype1==0.5.4.5
++ argparse==1.2.1
++ beautifulsoup4==4.3.2
++ boilerpipe==1.2.0.0
++ charade==1.0.3
++ requests==2.2.1
++ wsgiref==0.1.2
 
-## Installation
-
-Dependencies on `beautifulsoup`, `requests` and `boilerpipe`, all of them being available through [pip](http://www.pip-installer.org/en/latest/installing.html).
+All of them being available through [pip](http://www.pip-installer.org/en/latest/installing.html).
 
 ## Usage
 
@@ -51,4 +49,4 @@ Released under [MIT License](http://opensource.org/licenses/MIT).
 
 ## About
 
-Developed by [@mazieres](http://mazier.es), forked from [@jphcoi](http://jph.cointet.free.fr/wp/), both efforts being part of [Cortext project](http://cortext.fr/).
+#Developed by [@mazieres](http://mazier.es), forked from [@jphcoi](http://jph.cointet.free.fr/wp/), both efforts being part of [Cortext project](http://cortext.fr/).
