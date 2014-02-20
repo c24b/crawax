@@ -21,30 +21,30 @@ import __future__
 from abpy import Filter
 adblock = Filter(file('easylist.txt'))
 
-reload(sys) 
-sys.setdefaultencoding("utf-8")
+#Why?
+#~ reload(sys) 
+#~ sys.setdefaultencoding("utf-8")
 
 user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00', ]
-
 unwanted_extensions = ['css','js','gif','GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov']
 
 
 class Seeds(set):
 	
 	def __init__(self, query, bing=None, local=None):
-		
+		''' A seed is a set of url who has query, key, path properties'''	
 		self.query = query
 		self.key = bing
 		self.path = local
 
 	def get_bing(self):
-
+		''' Method to extract results (defaut results_nb is 10) from BING API (Limited to 5000 req/month). ''' 
 		try:
 			r = requests.get(
 					'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
 					params={
 						'$format' : 'json',
-						'$top' : 1,
+						'$top' : 5,
 						'Query' : '\'%s\'' % self.query,
 					},
 					auth=(self.key, self.key)
@@ -59,7 +59,7 @@ class Seeds(set):
 			return False
 
 	def get_local(self):
-
+		''' Method to extract url list from text file'''
 		try:
 			for url in open(self.path).readlines():
 				self.add(url)
@@ -78,12 +78,13 @@ class Page():
 		self.query = query
 
 	def pre_check(self):
-
+		'''Filter unwanted extensions and adds using Addblock list'''
 		return bool ( ( self.url.split('.')[-1] not in unwanted_extensions )
 					and
 					( len( adblock.match(self.url) ) == 0 ) )
 
 	def retrieve(self):
+		''' Request a specific HTML file and return text file stored in self.src''' 
 		try:
 			self.req = requests.get( self.url, headers={'User-Agent': choice(user_agents)}, timeout=3 )
 			if 'text/html' not in self.req.headers['content-type']:
@@ -95,7 +96,7 @@ class Page():
 			return False
 
 	def is_relevant(self):
-
+		'''Reformat the query with OR and AND operators'''
 		if 'OR' in self.query:
 			for each in self.query.split('OR'):
 				query4re = each.lower().replace(' ', '.*')
@@ -111,11 +112,11 @@ class Page():
 			return bool(re.search(query4re, self.src, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 
 	def extract_content(self):
-		
+		'''Extract content using BoilerPipe + BeautifulSoup'''
 		self.soup = BeautifulSoup(Extractor(html=self.src).getHTML())
 
 	def extract_urls(self):
-
+		''' Extract and clean urls'''
 		self.outlinks = set()
 		self.netloc = 'http://' + urlparse(self.url)[1]
 
@@ -137,7 +138,7 @@ class Page():
 class Crawl():
 
 	def __init__(self, cfg):
-	
+		'''simple parsing parameter'''
 		if 'query' in cfg.keys() and cfg['query'] != '':
 			self.query = cfg['query']
 		else: self.query = False
@@ -154,6 +155,7 @@ class Crawl():
 		self.seen = set()
 
 	def do_page(self, url):
+		'''Create the page results'''
 		p = Page(url, self.query)
 		self.seen.add(p.url)
 		if p.pre_check() and p.retrieve() and p.is_relevant():
@@ -161,14 +163,14 @@ class Crawl():
 
 			self.res[p.url] = {
 				'pointers' : set(),
-				# 'source' : p.src,
-				# 'content_txt' : p.boiled_txt,
+				'source' : p.src,
+				'content_txt' : p.boiled_txt,
 				'content' : p.soup.get_text(),
 				'outlinks' : p.extract_urls(),
 			}
 
 	def start(self):
-
+		'''Start the crawler '''
 		self.seeds = Seeds(self.query, self.bing, self.local)
 
 		if (self.seeds.get_bing() and self.seeds.get_local()) or (self.seeds.get_bing() or self.seeds.get_local()):
@@ -176,15 +178,17 @@ class Crawl():
 				self.do_page(e)
 
 	def prepare(self):
-
+		''' Check for no infinite loop on url '''
 		self.toSee = set()
 		for k, v in self.res.iteritems():
+			''' Here is the place where I'm supposed to store the backlink information'''
 			self.toSee.update([url for url in v['outlinks'] if url not in self.seen])
 		print "toSee", len(self.toSee)
 		print "Seen", len(self.seen)
 		print "res", len(self.res)
 
 	def clean(self):
+		
 		print "Cleaning..."
 		for e in self.res.values():
 			for link in e['outlinks'].copy():
@@ -242,11 +246,6 @@ def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_see
 
 if __name__ == '__main__':
 
-	#~ crawtext('algues vertes OR algue verte', 				# query
-	 		#~ 1, 												# depth
-	 		#~ './results.json',		# absolute path to result file
-	 		#~ bing_account_key= open('keypass_')).read(), # Bing Search API key
-	 		#~ local_seeds='') 		# absolute path to local seeds
-	crawtext('été',1, './results.json', local_seeds='myseeds.txt')
-	pass
+	crawtext('Bretagne',10, './results.json', local_seeds='myseeds.txt')
+	sys.exit()
 
