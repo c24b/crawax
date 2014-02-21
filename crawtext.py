@@ -4,6 +4,7 @@
 from os.path import exists
 import sys
 import requests
+from requests import RequestException
 import json
 import re
 import threading
@@ -27,7 +28,7 @@ adblock = Filter(file('easylist.txt'))
 
 user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00']
 unwanted_extensions = ['css','js','gif','GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov']
-proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128'}
+#proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128'}
 
 	
 class Seeds(set):	
@@ -85,8 +86,10 @@ class Page():
 	def retrieve(self):
 		''' Request a specific HTML file and return html file stored in self.src''' 
 		try:
-			self.req = requests.get( self.url, headers={'User-Agent': choice(user_agents)}, timeout=3, proxies=proxies)
-			 
+			#removing proxies
+			
+			self.req = requests.get( self.url, headers={'User-Agent': choice(user_agents)}, timeout=3)
+
 			if 'text/html' not in self.req.headers['content-type']:
 				return False
 			#Error on ressource or on server
@@ -105,8 +108,8 @@ class Page():
 				
 				return True
 				
-		except:
-			print "Problem with MaxRetry on", self.url
+		except requests.exceptions.RequestException as e:
+			print e.args, self.url
 			# template = "An exception of type {0} occured. Arguments:\n{1!r}"
 			# message = template.format(type(ex).__name__, ex.args)
 			# print message	
@@ -268,12 +271,13 @@ def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_see
 
 
 if __name__ == '__main__':
-
-	crawtext(	'algues vertes OR algue verte',
-				0,
+	
+	crawtext(	'viande algues',
+				1,
 				"./results.json",
-				bing_account_key="J8zQNrEwAJ2u3VcMykpouyPf4nvA6Wre1019v/dIT0o",
-				local_seeds="myseeds.txt")
+				bing_account_key="J8zQNrEwAJ2u3VcMykpouyPf4nvA6Wre1019v/dIT0o"
+				,)
+				# local_seeds="myseeds.txt")
 
 	#sys.exit()
 
