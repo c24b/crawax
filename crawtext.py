@@ -21,40 +21,39 @@ import __future__
 from abpy import Filter
 adblock = Filter(file('easylist.txt'))
 
-#Why?
+#For testing in wired env
 #~ reload(sys) 
 #~ sys.setdefaultencoding("utf-8")
 
-user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00', ]
+user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00']
 unwanted_extensions = ['css','js','gif','GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov']
+proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128'}
 
-
-class Seeds(set):
 	
+class Seeds(set):	
 	def __init__(self, query, bing=None, local=None):
-		''' A seed is a set of url who has query, key, path properties'''	
+		''' A seed is a set of url who has query, key, source file(path) properties'''	
 		self.query = query
 		self.key = bing
 		self.path = local
 
 	def get_bing(self):
 		''' Method to extract results (defaut results_nb is 10) from BING API (Limited to 5000 req/month). ''' 
+		
 		try:
 			r = requests.get(
-					'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
-					params={
-						'$format' : 'json',
-						'$top' : 5,
-						'Query' : '\'%s\'' % self.query,
-					},
-					auth=(self.key, self.key)
+				'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
+				params={
+					'$format' : 'json',
+					'$top' : 10,
+					'Query' : '\'%s\'' % self.query,
+				},
+				auth=(self.key, self.key)
 				)
 
 			for e in r.json()['d']['results']:
 				self.add(e['Url'])
-
 			return True
-
 		except:
 			return False
 
@@ -84,19 +83,40 @@ class Page():
 					( len( adblock.match(self.url) ) == 0 ) )
 
 	def retrieve(self):
-		''' Request a specific HTML file and return text file stored in self.src''' 
+		''' Request a specific HTML file and return html file stored in self.src''' 
 		try:
-			self.req = requests.get( self.url, headers={'User-Agent': choice(user_agents)}, timeout=3 )
+			self.req = requests.get( self.url, headers={'User-Agent': choice(user_agents)}, timeout=3, proxies=proxies)
+			 
 			if 'text/html' not in self.req.headers['content-type']:
 				return False
+			#Error on ressource or on server
+			elif self.req.status_code in range(400,520):
+				return False
+			#Redirect
+			elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
+				return False
+			
 			else:
-				self.src = self.req.text
+				try:
+					self.src = self.req.text
+				except Exception, e:
+					print e
+					print self.req
+				
 				return True
+				
 		except:
+			print "Problem with MaxRetry on", self.url
+			# template = "An exception of type {0} occured. Arguments:\n{1!r}"
+			# message = template.format(type(ex).__name__, ex.args)
+			# print message	
+			#httplib.BadStatusLine
+			#HTTPConnectionPool(host='fr.wikipedia.org', port=80): Max retries exceeded with url: / (Caused by <class 'httplib.BadStatusLine'>: '')
+			#print "Exception:",e
 			return False
 
 	def is_relevant(self):
-		'''Reformat the query with OR and AND operators'''
+		'''Reformat the query properly: supports AND, OR and space'''
 		if 'OR' in self.query:
 			for each in self.query.split('OR'):
 				query4re = each.lower().replace(' ', '.*')
@@ -112,7 +132,7 @@ class Page():
 			return bool(re.search(query4re, self.src, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 
 	def extract_content(self):
-		'''Extract content using BoilerPipe + BeautifulSoup'''
+		'''Extract content using BoilerPipe Extractor+ BeautifulSoup'''
 		self.soup = BeautifulSoup(Extractor(html=self.src).getHTML())
 
 	def extract_urls(self):
@@ -164,8 +184,8 @@ class Crawl():
 			self.res[p.url] = {
 				'pointers' : set(),
 				'source' : p.src,
-				'content_txt' : p.boiled_txt,
-				'content' : p.soup.get_text(),
+				#'content_txt' : p.boiled_txt,
+				#'content' : p.soup.get_text(),
 				'outlinks' : p.extract_urls(),
 			}
 
@@ -178,10 +198,10 @@ class Crawl():
 				self.do_page(e)
 
 	def prepare(self):
-		''' Check for no infinite loop on url '''
+		''' Check the url has not be already treated'''
 		self.toSee = set()
 		for k, v in self.res.iteritems():
-			''' Here is the place where I'm supposed to store the backlink information'''
+			''' Here is the place where I'm supposed to take backlink information'''
 			self.toSee.update([url for url in v['outlinks'] if url not in self.seen])
 		print "toSee", len(self.toSee)
 		print "Seen", len(self.seen)
@@ -190,6 +210,8 @@ class Crawl():
 	def clean(self):
 		
 		print "Cleaning..."
+		'''Removing the link already passed'''
+		'''Voir le copy() et tester avec de l'insertion en BDD'''
 		for e in self.res.values():
 			for link in e['outlinks'].copy():
 				if link not in self.res.keys():
@@ -208,6 +230,7 @@ class Crawl():
 
 
 def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_seeds=None):
+	'''Main worker with threading and loop on depth'''
 	cfg = {
 		'query' : query,
 		'bing_account_key' : bing_account_key,
@@ -246,6 +269,11 @@ def crawtext(query, depth, path_to_export_file, bing_account_key=None, local_see
 
 if __name__ == '__main__':
 
-	crawtext('Bretagne',10, './results.json', local_seeds='myseeds.txt')
-	sys.exit()
+	crawtext(	'algues vertes OR algue verte',
+				0,
+				"./results.json",
+				bing_account_key="J8zQNrEwAJ2u3VcMykpouyPf4nvA6Wre1019v/dIT0o",
+				local_seeds="myseeds.txt")
+
+	#sys.exit()
 
