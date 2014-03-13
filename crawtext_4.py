@@ -9,8 +9,8 @@ import re
 import threading
 import Queue
 import pymongo
-from pymongo import Connection
-from pymongo.errors import ConnectionFailure
+
+from pymongo import MongoClient
 from pymongo import errors
 from bs4 import BeautifulSoup as bs
 from urlparse import urlparse
@@ -21,6 +21,7 @@ import __future__
 
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
+
 class Database(object):
 	def __init__(self, name="full_test", host="localhost", port=27017):
 		self.db_name = name
@@ -45,30 +46,43 @@ class Database(object):
 		self.queue = self.db['queue'] 
 		self.report = self.db['report']
 		return self
+
+class Database():
+	def __init__(self, database_name):
+		self.name = database_name
+		client = MongoClient('mongodb://localhost,localhost:27018')
+		self.db = client[self.name]
+		#self.db.x = self.db[x]
 		
+	def __repr__(self, database_name):	
+		return self.name
+		
+	def create_tables(self):
+		self.results = self.db['results']
+		self.queue = self.db['queue'] 
+		self.report = self.db['report']
+		self.sources = self.db['sources']
+		return self
+				
 class Page(object):
 	def __init__(self, url, query):
 		self.url = url
 		self.query = query
 		self.db = db
-		#properties
-		self.title = None
-		self.description = None
-		self.content = None
-		#self.soup = None
-		self.outlinks = []
-		self.backlinks = []
 		self.status = None
-		self.error_type = None
 		
 	def bad_status(self):
 		self.status = False
 		try:
-			self.error = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
+			self.log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
 		except AttributeError:
-			self.error = {"url":self.url, "error_code": 404, "type": self.error_type, "status": False}
-		return
-
+			self.log= {"url":self.url, "error_code": 404, "type": self.error_type, "status": False}
+		return self.log
+		 
+	def good_status(self):
+		self.log = {"url":self.url, "status":self.status}
+		return self.log
+		
 	def pre_check(self):
 		if (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
 				self.error_type="Url has not a proprer extension or page is an advertissement"
@@ -104,24 +118,25 @@ class Page(object):
 			headers = {'User-Agent': choice(user_agents),}
 			proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128', }
 			self.req = requests.get((self.url), headers = headers,allow_redirects=True, proxies=proxies, timeout=5)
-			print self.req.status_code
 			if self.pre_check() and self.check():
 				try:
 					self.src = self.req.text
-						
+					return True	
 				except Exception, e:
 					self.error_type = "Request answer was not understood %s" %e
 					self.bad_status()
-				
+					return False
 			else:
 				self.error_type = "Not relevant"
 				self.bad_status()
-			
+				return False
 		
 		except requests.exceptions.MissingSchema:
 			self.error_type = "Incorrect url %s" %self.url
 			self.bad_status()
-		return self
+			return False
+			
+		
 	def extract(self):
 		try:
 			self.soup = bs(self.src)
@@ -130,18 +145,13 @@ class Page(object):
 			self.title = article.title
 			self.text = article.cleaned_text
 			self.description = bs(article.meta_description).text
+			return True
 		except Exception, e:
 			self.error_type = str(e)
 			self.bad_status()
-		return self
+			return False
 	
-	def get(self):
-		self.result = {}
-		_inherited = ["status", "description", "text","outlinks","backlinks","url","title"]
-		for name in self.__dict__:
-			if name in _inherited:
-				self.result.update({name :self.__dict__[name]})
-		return self.result
+	
 				
 	def clean_url(self, url):
 		self.netloc = 'http://' + urlparse(self.url)[1]
@@ -156,12 +166,12 @@ class Page(object):
 			return url
 	
 	def next_step(self):
-		from multiprocessing import Pool
-		if self.status is True:
-			p = Pool(5)
+		if self.status is True:	
 			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if self.clean_url(e.attrs['href']) is not None]))
-			self.backlink = list(set([n for n in self.outlinks if n == self.url]))
-			return self.outlinks
+			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
+		return self.status
+		
+			
 		
 				
 	def filter(self):
@@ -181,10 +191,16 @@ class Page(object):
 			return bool(re.search(query4re, self.src, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 			 	
 		
-	def store(self):
-		results = self.__dict__	
-		return self.__dict__
-	
+	def getter(self):
+		try:
+			self.info = {"_id": self.url, "url":self.url,"title":self.title, "description": self.description, "text": self.text,"outlinks": self.outlinks,"backlinks":self.backlinks}
+			#self.info = json.dumps({"url":self.url, self._id :self.url })
+			return True
+		except AttributeError, e:
+			self.status = False
+			self.error_type = str(e.args)
+			self.bad_status()
+			return False
 		
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html", "test.com"]
@@ -193,13 +209,10 @@ if __name__ == '__main__':
 	db.create_tables()
 	for n in liste:
 		p = Page(n, query)
-		
-		p.request()
-		p.extract()
-		p.next_step()
-		result = p.get()
-		
-		if p.status is False:
-			print p.error
-		else:
-			print result['title']
+		if p.request() and p.extract() and p.next_step() and p.getter():
+			print p.info
+			db.results.insert(p.info)
+			db.queue.insert(p.outlinks)
+			
+		#liste.pop(n)
+		db.report.insert(p.log)	
