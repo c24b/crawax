@@ -56,8 +56,8 @@ class Page(object):
 		self.description = None
 		self.content = None
 		#self.soup = None
-		self.outlinks = set()
-		self.backlinks = set()
+		self.outlinks = []
+		self.backlinks = []
 		self.status = None
 		self.error_type = None
 		
@@ -74,11 +74,7 @@ class Page(object):
 		else:
 			self.status = True
 			return True
-		#~ else:
-			#~ test = urlparse(self.url)
-			#~ #if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
-			#~ print test
-			
+		
 	def check(self):		
 		if 'text/html' not in self.req.headers['content-type']:
 			self.error_type="Content type is not TEXT/HTML"
@@ -131,36 +127,25 @@ class Page(object):
 			self.bad_status()
 		return self
 		
-	def clean_url(self, parse_candidate):
-		#root url for next url
-		self.root = 'http://' + urlparse(self.url).netloc
-		self.candidate = None
-		#relative or absolute
-		#href = e.attrs['href']
-		print urlparse(parse_candidate)
-		#if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
-		#if pre_check(parse_candidate) is True:
-		#	print urlparse(href)
-		#	self.candidate = href
-		#	return True
-		#else:
-		#	return False	
-				#relative or absolute resolution
-				#~ if urlparse(url)[1] == '':
-					#~ if url[0] == '/':
-						#~ url = self.netloc + url
-					#~ else:
-						#~ url = self.netloc + '/' + url
-				#~ elif urlparse(url)[0] == '':
-					#~ url = 'http://' + url
+	def clean_url(self, url):
+		self.netloc = 'http://' + urlparse(self.url)[1]
+		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
+			if urlparse(url)[1] == '':
+				if url[0] == '/':
+					url = self.netloc + url
+				else:
+					url = self.netloc + '/' + url
+			elif urlparse(url)[0] == '':
+				url = 'http:' + url
+			return url
 	def next_step(self):
-		self.extract()
+		from multiprocessing import Pool
 		if self.status is True:
-			for e in self.soup.find_all('a', {'href': True}):	
-				parse_candidate = e.attrs['href']
-				if self.clean_url(parse_candidate) is True:
-					self.outlinks.add(self.candidate)
+			p = Pool(5)
+			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if self.clean_url(e.attrs['href']) is not None]))
+			self.backlink = list(set([n for n in self.outlinks if n == self.url]))
 			return self.outlinks
+		
 				
 	def filter(self):
 		'''Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
@@ -180,15 +165,9 @@ class Page(object):
 			 	
 		
 	def store(self):
-		print self.__dict__
-		
-	def send(self):
-		print self.outlinks
+		return self.__dict__	
 		
 	
-	def do_page(self):
-		p.request()
-		print p.__dict__
 		
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
@@ -200,9 +179,22 @@ if __name__ == '__main__':
 		
 		p.request()
 		p.extract()
-		print p.status
 		p.next_step()
-		print p.outlinks
+		
+		result = p.store()
+		if p.status is False:
+			print p.error
+			#db.report.insert(p.error)
+			liste.pop(n)
+		else:
+			print result
+			db.results.insert(result)
+			liste.append(result['outlinks'])
+			liste.pop(n)
+			#print result['outlinks']
+		
+		#~ 
+		#~ print p.outlinks
 		#~ p.do_page()
 		#~ 
 	
