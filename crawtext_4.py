@@ -9,6 +9,7 @@ import re
 import threading
 import Queue
 import pymongo
+import hashlib, base64
 
 from pymongo import MongoClient
 from pymongo import errors
@@ -193,8 +194,12 @@ class Page(object):
 		
 	def getter(self):
 		try:
-			self.info = {"_id": self.url, "url":self.url,"title":self.title, "description": self.description, "text": self.text,"outlinks": self.outlinks,"backlinks":self.backlinks}
-			#self.info = json.dumps({"url":self.url, self._id :self.url })
+			self.info = {	
+						"url":self.url,
+						"outlinks": self.outlinks,
+						"backlinks":self.backlinks
+						}
+							
 			return True
 		except AttributeError, e:
 			self.status = False
@@ -203,16 +208,18 @@ class Page(object):
 			return False
 		
 if __name__ == '__main__':
-	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html", "test.com"]
+	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_4")
+	db = Database("test_crawltext_")
 	db.create_tables()
 	for n in liste:
 		p = Page(n, query)
 		if p.request() and p.extract() and p.next_step() and p.getter():
 			print p.info
 			db.results.insert(p.info)
-			db.queue.insert(p.outlinks)
-			
+			print p.outlinks
+			#db.queue.insert(p.outlinks)
+		else:
+			print p.log
 		#liste.pop(n)
-		db.report.insert(p.log)	
+			db.report.insert(p.log)	
