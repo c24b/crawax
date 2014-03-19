@@ -77,10 +77,10 @@ class Page(object):
 			self.bad_status()
 			return False
 		#Redirect
-		elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
-			self.error_type="Redirection"
-			self.bad_status()
-			return False
+		#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
+			#~ self.error_type="Redirection"
+			#~ self.bad_status()
+			#~ return False
 		else:
 			return True	
 	
@@ -131,22 +131,31 @@ class Page(object):
 	
 				
 	def clean_url(self, url):
+		
+		#~ 1. gestion url relative vs url absolue
+		#~ 2. gestion des nom de domaines et sous nom de domaine
+		#~ 3. Insertion dans la BDD comme url unifiée
+		
 		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 		uid = urlparse(self.url)
+		#url relatives
 		if uid.netloc == "":
-			print uid
+			print self.url
+		 
+		sources = re.plit(".", uid.netloc)[-2:-1]
+		self.sources = "".join(sources) 
 		#~ if re.split("\.", uid.netloc)[0] != 'www':
 			#~ url = 
 		#~ self.netloc = 'http://' + uid[1]
-		#~ if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
-			#~ if uid[1] == '':
-				#~ if url[0] == '/':
-					#~ url = self.netloc + url
-				#~ else:
-					#~ url = self.netloc + '/' + url
-			#~ elif uid[0] == '':
-				#~ url = 'http:' + url
-			#~ return url
+		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
+			if uid[1] == '':
+				if url[0] == '/':
+					url = self.netloc + url
+				else:
+					url = self.netloc + '/' + url
+			elif uid[0] == '':
+				url = 'http:' + url
+			return self
 	
 	def next_step(self):
 		if self.status is True:	
@@ -175,10 +184,13 @@ class Page(object):
 		
 	def getter(self):
 		try:
-			self.info = {	
+			self.info = {
+						"source": self.sources,
 						"url":self.url,
 						"outlinks": self.outlinks,
-						"backlinks":self.backlinks
+						"backlinks":self.backlinks,
+						"texte": self.text,
+						"title": self.title
 						}
 							
 			return True
@@ -198,8 +210,9 @@ if __name__ == '__main__':
 		print n
 		p = Page(n, query)
 		if p.request() and p.extract() and p.next_step() and p.getter():
-			db.results.insert(p.info)
 			
+			db.results.insert(p.info)
+			db.sources.insert(p.info["url"])
 			db.queue.insert([{"url":url} for url in p.outlinks])
 			
 			
@@ -207,6 +220,7 @@ if __name__ == '__main__':
 		for n in db.queue.distinct("url"):
 			p = Page(n, query)
 			if p.request() and p.extract() and p.next_step() and p.getter():
-				db.results.insert(p.info)
-				db.queue.insert([{"url":url} for url in p.outlinks])
+				if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
+					db.results.insert(p.info)
+					db.queue.insert([{"url":url} for url in p.outlinks])
 			db.queue.remove({"url": n})
