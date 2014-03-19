@@ -64,7 +64,6 @@ class Page(object):
 			return False
 		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
 				self.error_type="Url has not a proprer extension or page is an advertissement"
-				print self.error_type
 				return False
 		else:
 			self.status = True
@@ -89,7 +88,6 @@ class Page(object):
 	def request(self):
 		
 		if self.pre_check() is True:
-			
 			#self.url = self.clean_url(self.url)
 			try:
 				requests.adapters.DEFAULT_RETRIES = 2
@@ -111,6 +109,9 @@ class Page(object):
 			except requests.exceptions.MissingSchema:
 				self.error_type = "Incorrect url %s" %self.url
 				return False
+			except Exception as e:
+				self.error_type = str(e)
+				return False
 		else:
 			return False		
 		
@@ -129,7 +130,6 @@ class Page(object):
 		
 				
 	def clean_url(self, url):
-		
 		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
 		self.netloc = urlparse(self.url).netloc
@@ -138,16 +138,23 @@ class Page(object):
 		self.domain = get_tld(self.url)
 		
 		uid = urlparse(url)
-		#url relatives
-		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
-			if uid.netloc == "":
-				clean_url = self.netloc+uid.path
+		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
+			if uid.netloc == "" and len(uid.path)> 0:
+				if uid.path[0] != "/":
+					#~ print uid.path[0]
+					clean_url = "http://"+self.netloc+"/"+uid.path
+					print clean_url
+				else:
+					clean_url = "http://"+self.netloc+uid.path
 				return clean_url
-	
+			else:
+				return url
+		else: 
+			return None
 	def next_step(self):
 		if self.status is True:	
 			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
-			
+			print self.clean_url(self.url)
 			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
 		return self.status
 			
@@ -197,7 +204,6 @@ if __name__ == '__main__':
 	#constitution de la base
 
 	for n in liste:
-		#print n
 		p = Page(n, query)
 		
 		if p.request() and p.extract() and p.next_step() and p.getter():
@@ -207,11 +213,11 @@ if __name__ == '__main__':
 	for n in db.queue.distinct("url"):
 		
 		p = Page(n, query)
-		
 		if p.request() and p.extract() and p.next_step() and p.getter():
+			print p.info["title"]
 			if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
 				db.results.insert(p.info)
 				db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
-			
+			p.bad_status()
 		db.queue.remove({"url": n})
