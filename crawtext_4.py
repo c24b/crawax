@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup as bs
 from urlparse import urlparse
 from random import choice
 from goose import Goose
+from tld import get_tld
 
 import __future__
 
@@ -57,10 +58,13 @@ class Page(object):
 		return self.log
 		 	
 	def pre_check(self):
-		if (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
+		if self.url is None:
+			self.error_type="Url is empty"
+			self.status = False
+			return False
+		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
 				self.error_type="Url has not a proprer extension or page is an advertissement"
 				print self.error_type
-				self.bad_status()
 				return False
 		else:
 			self.status = True
@@ -69,12 +73,10 @@ class Page(object):
 	def check(self):		
 		if 'text/html' not in self.req.headers['content-type']:
 			self.error_type="Content type is not TEXT/HTML"
-			self.bad_status()
 			return False
 		#Error on ressource or on server
 		elif self.req.status_code in range(400,520):
 			self.error_type="Connexion error"
-			self.bad_status()
 			return False
 		#Redirect
 		#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
@@ -85,7 +87,7 @@ class Page(object):
 			return True	
 	
 	def request(self):
-		print self.url
+		
 		if self.pre_check() is True:
 			
 			#self.url = self.clean_url(self.url)
@@ -101,18 +103,16 @@ class Page(object):
 						return True	
 					except Exception, e:
 						self.error_type = "Request answer was not understood %s" %e
-						self.bad_status()
 						return False
 				else:
 					self.error_type = "Not relevant"
-					self.bad_status()
 					return False
 			
 			except requests.exceptions.MissingSchema:
 				self.error_type = "Incorrect url %s" %self.url
-				self.bad_status()
 				return False
-				
+		else:
+			return False		
 		
 	def extract(self):
 		try:
@@ -125,41 +125,29 @@ class Page(object):
 			return True
 		except Exception, e:
 			self.error_type = str(e)
-			self.bad_status()
 			return False
-	
-	
+		
 				
 	def clean_url(self, url):
 		
-		#~ 1. gestion url relative vs url absolue
-		#~ 2. gestion des nom de domaines et sous nom de domaine
-		#~ 3. Insertion dans la BDD comme url unifiée
-		
 		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
-		uid = urlparse(self.url)
+		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
+		self.netloc = urlparse(self.url).netloc
+		
+		#nom de domaine de la source première
+		self.domain = get_tld(self.url)
+		
+		uid = urlparse(url)
 		#url relatives
-		if uid.netloc == "":
-			print self.url
-		 
-		sources = re.plit(".", uid.netloc)[-2:-1]
-		self.sources = "".join(sources) 
-		#~ if re.split("\.", uid.netloc)[0] != 'www':
-			#~ url = 
-		#~ self.netloc = 'http://' + uid[1]
 		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url:
-			if uid[1] == '':
-				if url[0] == '/':
-					url = self.netloc + url
-				else:
-					url = self.netloc + '/' + url
-			elif uid[0] == '':
-				url = 'http:' + url
-			return self
+			if uid.netloc == "":
+				clean_url = self.netloc+uid.path
+				return clean_url
 	
 	def next_step(self):
 		if self.status is True:	
-			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if self.clean_url(e.attrs['href']) is not None]))
+			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
+			
 			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
 		return self.status
 			
@@ -183,9 +171,10 @@ class Page(object):
 			 	
 		
 	def getter(self):
+		self.next_step()
 		try:
 			self.info = {
-						"source": self.sources,
+						"source": self.domain,
 						"url":self.url,
 						"outlinks": self.outlinks,
 						"backlinks":self.backlinks,
@@ -195,32 +184,34 @@ class Page(object):
 							
 			return True
 		except AttributeError, e:
+			print e
 			self.status = False
 			self.error_type = str(e.args)
-			self.bad_status()
 			return False
 		
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_7")
+	db = Database("test_crawltext_8")
 	db.create_tables()
+	#constitution de la base
+
 	for n in liste:
-		
-		print n
+		#print n
 		p = Page(n, query)
+		
 		if p.request() and p.extract() and p.next_step() and p.getter():
-			
 			db.results.insert(p.info)
-			db.sources.insert(p.info["url"])
+			db.sources.insert({"url":p.info["url"]})
 			db.queue.insert([{"url":url} for url in p.outlinks])
+	for n in db.queue.distinct("url"):
+		
+		p = Page(n, query)
+		
+		if p.request() and p.extract() and p.next_step() and p.getter():
+			if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
+				db.results.insert(p.info)
+				db.queue.insert([{"url":url} for url in p.outlinks])
+		else:
 			
-			
-	while db.queue.distinct("url") != 0:
-		for n in db.queue.distinct("url"):
-			p = Page(n, query)
-			if p.request() and p.extract() and p.next_step() and p.getter():
-				if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
-					db.results.insert(p.info)
-					db.queue.insert([{"url":url} for url in p.outlinks])
-			db.queue.remove({"url": n})
+		db.queue.remove({"url": n})
