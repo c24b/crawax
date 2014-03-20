@@ -28,7 +28,7 @@ unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','
 class Database():
 	def __init__(self, database_name):
 		self.name = database_name
-		client = MongoClient('mongodb://localhost,localhost:27018')
+		client = MongoClient('mongodb://localhost,localhost:27017')
 		self.db = client[self.name]
 		#self.db.x = self.db[x]
 		
@@ -50,25 +50,47 @@ class Page(object):
 		self.status = None
 		
 	def bad_status(self):
-		self.status = False
+		'''send report info when error'''
+		self.log = None
 		try:
 			self.log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
 		except AttributeError:
-			self.log= {"url":self.url, "error_code": 404, "type": self.error_type, "status": False}
-		return self.log
-		 	
-	def pre_check(self):
-		self.url = self.clean_url(self.url)
-		if self.url is None:
-			self.error_type="Url is empty"
-			self.status = False
+			try:
+				self.log = {"url":self.url, "error_code": "Undefined", "type": self.error_type, "status": False}
+		 	except AttributeError:
+				pass
+			return self.log
+				
+	def pre_check(self, url= None):
+		''' check the format of the url
+		1. Check if the url is not internal link
+		1. Check if the url has a proper extension and is not an advertisement
+		3. Check if the url is relative or absolute
+		
+		'''
+		self.uri = urlparse(self.url)
+		print self.uri
+		
+		if len(self.url) <= 1 or self.url is None or self.url == "\n":
 			return False
+			
+		elif self.uri.path in [ '#', None, '\n', '', 'javascript', '@']:
+			return False
+		
 		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
-				self.error_type="Url has not a proprer extension or page is an advertissement"
-				return False
+			self.error_type="Url has not a proprer extension or page is an advertissement"
+			return False
+			
 		else:
-			self.status = True
-			return True
+			if self.uri.netloc == '' or len(self.uri.netloc) <=1 or self.uri.netloc is None:
+				print urlparse(url).netloc
+			
+			return True	
+		#~ try:
+		#~ except Exception, e:
+			#~ self.error_type="Not a valid url and domain name"
+			#~ self.status = False
+			#~ return False
 		
 	def check(self):		
 		if 'text/html' not in self.req.headers['content-type']:
@@ -135,23 +157,25 @@ class Page(object):
 		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
 		self.netloc = urlparse(self.url).netloc
 		
-		#nom de domaine de la source première
-		self.domain = get_tld(self.url)
 		
 		uid = urlparse(url)
-		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
-			if uid.netloc == "" and len(uid.path)> 0:
-				if uid.path[0] != "/" and self.netloc[-1] !="/":
-					#~ print uid.path[0]
-					clean_url = "http://"+self.netloc+"/"+uid.path
-					return clean_url
-				else:
-					clean_url = "http://"+self.netloc+uid.path
+		#if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
+		if uid.path in [ '#', None, '\n', '', 'void' ]:
+			print repr(uid.path)
+		if uid.netloc == "":
+			if len(uid.path) <=1:
+				return None
+			elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
+				
+				clean_url = "http://"+self.netloc+"/"+uid.path
 				return clean_url
 			else:
-				return url
-		else: 
-			return None
+				clean_url = "http://"+self.netloc+uid.path
+			return clean_url
+		else:
+			return url
+		#~ else: 
+			#~ return None
 	
 	def next_step(self):
 		if self.status is True:	
@@ -192,7 +216,6 @@ class Page(object):
 							
 			return True
 		except AttributeError, e:
-			print e
 			self.status = False
 			self.error_type = str(e.args)
 			return False
@@ -223,7 +246,7 @@ if __name__ == '__main__':
 				db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
 			p.bad_status()
-			print p.log
-			db.log.insert({"url": n})
+			if p.log is not None:
+				db.log.insert(log_msg)
 		db.queue.remove({"url": n})
 	
