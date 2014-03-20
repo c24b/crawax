@@ -41,7 +41,7 @@ class Database():
 		self.log = self.db['log']
 		self.sources = self.db['sources']
 		return self
-				
+			
 class Page(object):
 	def __init__(self, url, query):
 		self.url = url
@@ -58,6 +58,7 @@ class Page(object):
 		return self.log
 		 	
 	def pre_check(self):
+		self.url = self.clean_url(self.url)
 		if self.url is None:
 			self.error_type="Url is empty"
 			self.status = False
@@ -151,9 +152,10 @@ class Page(object):
 				return url
 		else: 
 			return None
+	
 	def next_step(self):
 		if self.status is True:	
-			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
+			self.outlinks = list(set([e.attrs['href'] for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
 			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
 		return self.status
 			
@@ -200,8 +202,8 @@ if __name__ == '__main__':
 	query= "algues vertes OR algue verte"
 	db = Database("test_crawltext_10")
 	db.create_tables()
+	
 	#constitution de la base
-
 	for n in liste:
 		p = Page(n, query)
 		
