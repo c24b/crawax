@@ -140,10 +140,10 @@ class Page(object):
 		uid = urlparse(url)
 		if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
 			if uid.netloc == "" and len(uid.path)> 0:
-				if uid.path[0] != "/":
+				if uid.path[0] != "/" and self.netloc[-1] !="/":
 					#~ print uid.path[0]
 					clean_url = "http://"+self.netloc+"/"+uid.path
-					print clean_url
+					return clean_url
 				else:
 					clean_url = "http://"+self.netloc+uid.path
 				return clean_url
@@ -154,7 +154,6 @@ class Page(object):
 	def next_step(self):
 		if self.status is True:	
 			self.outlinks = list(set([self.clean_url(e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
-			print self.clean_url(self.url)
 			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
 		return self.status
 			
@@ -199,7 +198,7 @@ class Page(object):
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_8")
+	db = Database("test_crawltext_10")
 	db.create_tables()
 	#constitution de la base
 
@@ -210,14 +209,19 @@ if __name__ == '__main__':
 			db.results.insert(p.info)
 			db.sources.insert({"url":p.info["url"]})
 			db.queue.insert([{"url":url} for url in p.outlinks])
-	for n in db.queue.distinct("url"):
-		
+	print db.sources.count()
+	print db.queue.count()
+	
+	for n in db.queue.distinct("url"):	
 		p = Page(n, query)
 		if p.request() and p.extract() and p.next_step() and p.getter():
-			print p.info["title"]
+			#print p.info["title"]
 			if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
 				db.results.insert(p.info)
 				db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
 			p.bad_status()
+			print p.log
+			db.log.insert({"url": n})
 		db.queue.remove({"url": n})
+	
