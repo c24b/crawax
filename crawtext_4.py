@@ -23,6 +23,8 @@ import __future__
 
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
+from abpy import Filter
+adblock = Filter(file('easylist.txt'))
 
 
 class Database():
@@ -48,10 +50,18 @@ class Page(object):
 		self.query = query
 		self.db = db
 		self.status = None
-		self.domain = get_tld(url)
-		
+		if url is None or url == "":
+			self.status = False
+		self.domain = None
+	def do_page(self, url, query):
+		self.pre_check(url)
+		self.request()
+		self.check()
+		self.extract()
+
+
 	def bad_status(self):
-		'''send report info when error'''
+		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}'''
 		self.msg_log = None
 		try:
 			self.msg_log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
@@ -62,37 +72,35 @@ class Page(object):
 				pass
 		return self.msg_log
 				
-	def pre_check(self, url= None):
-		''' check the format of the url
-		1. Check if the url is not internal link
-		1. Check if the url has a proper extension and is not an advertisement
-		3. Check if the url is relative or absolute
-		'''
-		self.uri = urlparse(self.url)
+	def pre_check(self, url=None):
+		''' check the format of the next url compared to curr url : boolean answer'''
+		#curr url is self.url
+		#next url is url
 		
-		
-		if len(self.url) <= 1 or self.url is None or self.url == "\n":
-			return False
-			
-		elif self.uri.path in [ '#', None, '\n', '', 'javascript', '@']:
-			return False
-		
-		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
-			self.error_type="Url has not a proprer extension or page is an advertissement"
-			return False
-			
+		#current link
+		if self.url is not None or len(self.url) > 1 or self.url == "\n":
+			self.curr = urlparse(self.url)
+			if (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
+				self.error_type="Url has not a proprer extension or page is an advertissement"
+				return False
+			else:
+				if url is not None:
+					self.next = urlparse(self.url)
+					if self.next.netloc == '' or len(self.next.netloc) <=1 or self.next.netloc is None:
+						return False
+					else:	
+						print "Urlparse", self.next.netloc
+						return True
 		else:
-			if self.uri.netloc == '' or len(self.uri.netloc) <=1 or self.uri.netloc is None:
-				print "Urlparse", urlparse(url).netloc
-				
-			return True	
+			return False	
 		#~ try:
 		#~ except Exception, e:
 			#~ self.error_type="Not a valid url and domain name"
 			#~ self.status = False
 			#~ return False
 		
-	def check(self):		
+	def check(self):
+		'''control the result of request return a boolean '''
 		if 'text/html' not in self.req.headers['content-type']:
 			self.error_type="Content type is not TEXT/HTML"
 			return False
@@ -100,45 +108,41 @@ class Page(object):
 		elif self.req.status_code in range(400,520):
 			self.error_type="Connexion error"
 			return False
-		#Redirect
-		#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
-			#~ self.error_type="Redirection"
-			#~ self.bad_status()
-			#~ return False
+			#Redirect
+			#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
+				#~ self.error_type="Redirection"
+				#~ self.bad_status()
+				#~ return False
 		else:
 			return True	
-	
-	def request(self):
 		
-		if self.pre_check() is True:
-			#self.url = self.clean_url(self.url)
+	def request(self):
+		'''request a webpage: return boolean'''
+		try:
+			requests.adapters.DEFAULT_RETRIES = 2
+			user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00']
+			headers = {'User-Agent': choice(user_agents),}
+			proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128', }
+			self.req = requests.get((self.url), headers = headers,allow_redirects=True, proxies=proxies, timeout=5)
 			try:
-				requests.adapters.DEFAULT_RETRIES = 2
-				user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00']
-				headers = {'User-Agent': choice(user_agents),}
-				proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128', }
-				self.req = requests.get((self.url), headers = headers,allow_redirects=True, proxies=proxies, timeout=5)
-				if self.pre_check() and self.check():
-					try:
-						self.src = self.req.text
-						return True	
-					except Exception, e:
-						self.error_type = "Request answer was not understood %s" %e
-						return False
-				else:
-					self.error_type = "Not relevant"
-					return False
-			
-			except requests.exceptions.MissingSchema:
-				self.error_type = "Incorrect url %s" %self.url
+				self.src = self.req.text
+				return True	
+			except Exception, e:
+				self.error_type = "Request answer was not understood %s" %e
 				return False
-			except Exception as e:
-				self.error_type = str(e)
+			else:
+				self.error_type = "Not relevant"
 				return False
-		else:
-			return False		
+		
+		except requests.exceptions.MissingSchema:
+			self.error_type = "Incorrect url %s" %self.url
+			return False
+		except Exception as e:
+			self.error_type = str(e)
+			return False
 		
 	def extract(self):
+		'''extract content and info of webpage return boolean'''
 		try:
 			self.soup = bs(self.src)
 			g = Goose()
@@ -153,41 +157,29 @@ class Page(object):
 		
 				
 	def clean_url(self, url):
-		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
-		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
-		#previous url
-
-		self.netloc = urlparse(self.url).netloc
-		#next url
-		
-		uid = urlparse(url)
-		
-		#if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
-		if uid.path in [ '#', None, '\n', '', 'void' ]:
-			print "path", uid.path
-		#if next_url is relative take previous url netloc
-		if uid.netloc == "":
-			if len(uid.path) <=1:
-				return None
-			elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
-				
-				clean_url = "http://"+self.netloc+"/"+uid.path
-				return clean_url
+		''' utility to normalize url and discard unwanted extension : return a url'''
+		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
+		clean_url = None
+		if url not in [ "#","/", None, "\n", "",] or url not in 'javascript':
+			self.netloc = urlparse(self.url).netloc
+			uid = urlparse(url)
+			#if next_url is relative take previous url netloc
+			if uid.netloc == "":
+				if len(uid.path) <=1:
+					return None			
+				elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
+					clean_url = "http://"+self.netloc+"/"+uid.path
+				else:
+					clean_url = "http://"+self.netloc+uid.path
 			else:
-				clean_url = "http://"+self.netloc+uid.path
-			return clean_url
-		else:
-			return url
-		#~ else: 
-			#~ return None
-	
+				clean_url = url
+		return clean_url		
+		
 	def next_step(self):
-		self.outlinks = list(set([self.clean_url(url=e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] or self.clean_url(url=e.attrs['href']) is not None]))
-		self.backlinks = list(set([self.clean_url(url=n) for n in self.outlinks if n == self.url and self.clean_url(url=n) is not None]))	
-		if len(self.outlinks) != 0:
-			return True
-		else:
-			return False
+		'''return a list of outlinks and backlinks'''
+		self.outlinks = [self.clean_url(url=e.attrs['href']) for e in self.soup.find_all('a', {'href': True})]
+		self.backlinks = [n for n in self.outlinks if n == self.url]	
+		return self
 				
 	def filter(self):
 		'''Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
@@ -207,7 +199,6 @@ class Page(object):
 			 	
 		
 	def getter(self):
-		print "next?", self.next_step()
 		try:
 			self.info = {
 						"source": self.domain,
@@ -228,42 +219,38 @@ class Page(object):
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_12")
+	db = Database("test_crawltext_13")
 	db.create_tables()
 	
 	#constitution de la base
 	for n in liste:
+		print n
 		p = Page(n, query)
-		if p.url is None:
-			p.bad_status()
-			db.log.insert(p.msg_log)
-			continue
+		if (p.request() and p.extract() and p.next_step() and p.getter()) is True:
+			db.results.insert(p.info)
+			db.sources.insert({"url":p.info["url"]})
+			print p.outlinks
+			db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
+			print p.request(), p.extract(), p.next_step(), p.getter()
+			print p.bad_status()
+			db.log.insert(p.msg_log)
+					
+	print "Nb de sources", db.sources.count()
+	print "Nb urls en traitement", db.queue.count()
+	print "nb erreur", db.log.count()
+	while db.queue.count > 0:
+		for n in db.queue.distinct("url"):	
+			p = Page(n, query)
 			if p.request() and p.extract() and p.next_step() and p.getter():
-				print p.info
-				db.results.insert(p.info)
-				db.sources.insert({"url":p.info["url"]})
-				db.queue.insert([{"url":url} for url in p.outlinks])
+				#print p.info["title"]
+				if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
+					db.results.insert(p.info)
+					db.queue.insert([{"url":url} for url in p.outlinks])
 			else:
 				p.bad_status()
 				if p.msg_log is not None:
 					db.log.insert(p.msg_log)
-				else:
-					continue	
-	print "Nb de sources", db.sources.count()
-	print "Nb urls en traitement", db.queue.count()
-	
-	for n in db.queue.distinct("url"):	
-		p = Page(n, query)
-		if p.request() and p.extract() and p.next_step() and p.getter():
-			#print p.info["title"]
-			if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
-				db.results.insert(p.info)
-				db.queue.insert([{"url":url} for url in p.outlinks])
-		else:
-			p.bad_status()
-			if p.msg_log is not None:
-				db.log.insert(p.msg_log)
-		db.queue.remove({"url": n})
+			db.queue.remove({"url": n})
 	
 
