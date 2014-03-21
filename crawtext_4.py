@@ -48,7 +48,6 @@ class Page(object):
 	def __init__(self, url, query):
 		self.url = url
 		self.query = query
-		self.db = db
 		self.status = None
 		self.error_type = None
 		self.info = {}
@@ -176,35 +175,42 @@ class Page(object):
 		else:
 			return None			
 
-if __name__ == '__main__':
-	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
-	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_15")
+def InitSeeds(sources_list, db_name):
+	#constitution de la base
+	db = Database(db_name)
 	db.create_tables()
 	
-	#constitution de la base
 	for n in liste:
 		p = Page(n, query)
 		if p.check() and p.request() and p.control() and p.extract() and p.filter():
 			db.results.insert(p.info)
 			db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
-			print len(p.outlinks)
-			db.queue.insert([{"url":url} for url in p.outlinks])
+			for url in p.outlinks:
+				if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
+					db.queue.insert({"url":url})
 		else:
 			db.log.insert(p.bad_status())  
 					
 	print "Nb de sources", db.sources.count()
 	print "Nb urls en traitement", db.queue.count()
 	print "nb erreur", db.log.count()
+	return db
+
+def Sourcing(db):
+	db.queue.insert([{"url":url} for url in db.sources.distinct("url")])
+	return True
+
+def Crawler(db, query):
 	while db.queue.count > 0:
 		print "beginning crawl"
 		for n in db.queue.distinct("url"):	
-			if n not in db.results.distinct("url"):
+			if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
 				p = Page(n, query)
 				if p.check() and p.request() and p.control() and p.extract() and p.filter():
 					db.results.insert(p.info)
-					if p.outlinks is not None or len(p.outlinks) > 0:
-						db.queue.insert([{"url":url} for url in p.outlinks])
+					for url in p.outlinks:
+						if url is not None and url not in db.queue.distinct("url"):
+							db.queue.insert({"url":url})
 					else:
 						continue
 				else:
@@ -215,4 +221,16 @@ if __name__ == '__main__':
 			print "En traitement", db.queue.count()
 			print "Resultats", db.results.count()
 			print "Erreur", db.log.count()
-	print "traitement terminé"
+		if db.queue.count() == 0:
+			break
+	return "traitement terminé"
+
+if __name__ == '__main__':
+	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
+	query= "algues vertes OR algue verte"
+	 
+	print "ok"
+	InitSeeds(liste, "db_test_crawtest_19")
+	
+	
+	
