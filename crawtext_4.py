@@ -48,7 +48,10 @@ class Page(object):
 		self.query = query
 		self.db = db
 		self.status = None
-		
+		# try:
+		self.domain = get_tld(url)
+		# except exceptions:
+			# self.domain = None
 	def bad_status(self):
 		'''send report info when error'''
 		self.log = None
@@ -66,10 +69,9 @@ class Page(object):
 		1. Check if the url is not internal link
 		1. Check if the url has a proper extension and is not an advertisement
 		3. Check if the url is relative or absolute
-		
 		'''
 		self.uri = urlparse(self.url)
-		print self.uri
+		
 		
 		if len(self.url) <= 1 or self.url is None or self.url == "\n":
 			return False
@@ -83,8 +85,8 @@ class Page(object):
 			
 		else:
 			if self.uri.netloc == '' or len(self.uri.netloc) <=1 or self.uri.netloc is None:
-				print urlparse(url).netloc
-			
+				print "Urlparse", urlparse(url).netloc
+				
 			return True	
 		#~ try:
 		#~ except Exception, e:
@@ -155,13 +157,15 @@ class Page(object):
 	def clean_url(self, url):
 		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
+		#previous url
 		self.netloc = urlparse(self.url).netloc
-		
-		
+		#next url
 		uid = urlparse(url)
+		
 		#if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
 		if uid.path in [ '#', None, '\n', '', 'void' ]:
-			print repr(uid.path)
+			print "path", uid.path
+		#if next_url is relative take previous url netloc
 		if uid.netloc == "":
 			if len(uid.path) <=1:
 				return None
@@ -178,12 +182,12 @@ class Page(object):
 			#~ return None
 	
 	def next_step(self):
-		if self.status is True:	
-			self.outlinks = list(set([e.attrs['href'] for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] is not None]))
-			self.backlinks = list(set([n for n in self.outlinks if n == self.url]))
-		return self.status
-			
-		
+		self.outlinks = list(set([self.clean_url(url=e.attrs['href']) for e in self.soup.find_all('a', {'href': True}) if e.attrs['href'] or self.clean_url(url=e.attrs['href']) is not None]))
+		self.backlinks = list(set([self.clean_url(url=n) for n in self.outlinks if n == self.url and self.clean_url(url=n) is not None]))	
+		if len(self.outlinks) != 0:
+			return True
+		else:
+			return False
 				
 	def filter(self):
 		'''Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
@@ -203,7 +207,7 @@ class Page(object):
 			 	
 		
 	def getter(self):
-		self.next_step()
+		print "next?", self.next_step()
 		try:
 			self.info = {
 						"source": self.domain,
@@ -216,6 +220,7 @@ class Page(object):
 							
 			return True
 		except AttributeError, e:
+			print e
 			self.status = False
 			self.error_type = str(e.args)
 			return False
@@ -223,19 +228,24 @@ class Page(object):
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_10")
+	db = Database("test_crawltext_12")
 	db.create_tables()
 	
 	#constitution de la base
 	for n in liste:
 		p = Page(n, query)
-		
+		print p.request()
+		print p.extract()
+		print p.next_step()
+		print p.getter()
+
 		if p.request() and p.extract() and p.next_step() and p.getter():
+			print p.info
 			db.results.insert(p.info)
 			db.sources.insert({"url":p.info["url"]})
 			db.queue.insert([{"url":url} for url in p.outlinks])
-	print db.sources.count()
-	print db.queue.count()
+	print "Nb de sources", db.sources.count()
+	print "Nb urls en traitement", db.queue.count()
 	
 	for n in db.queue.distinct("url"):	
 		p = Page(n, query)
