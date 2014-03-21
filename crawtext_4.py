@@ -147,9 +147,6 @@ class Page(object):
 		except AttributeError:
 			self.code = None
 		return {"url":self.url, "error_code": self.code, "type": self.error_type, "status": False}
-		# except Exception as e:
-		# 	self.msg_log = {"url":self.url, "error_code": "Undefined", "type": str(e), "status": False}
-		#  	return self.msg_log
 	
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''
@@ -192,7 +189,9 @@ def InitSeeds(sources_list, db_name):
 	print "nb erreur", db.log.count()
 	return db
 
-def Sourcing(db):
+def Sourcing(db_name):
+	db = Database(db_name)
+	db.create_tables()
 	db.queue.insert([{"url":url} for url in db.sources.distinct("url")])
 	return True
 
@@ -226,7 +225,7 @@ if __name__ == '__main__':
 	query= "algues vertes OR algue verte"
 	 
 	print "ok"
-	InitSeeds(liste, "db_test_crawtest_19")
-	
+	#InitSeeds(liste, "db_test_crawtest_19")
+	Sourcing("db_test_crawtest_19")
 	
 	
