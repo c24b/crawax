@@ -48,10 +48,8 @@ class Page(object):
 		self.query = query
 		self.db = db
 		self.status = None
-		# try:
 		self.domain = get_tld(url)
-		# except exceptions:
-			# self.domain = None
+		
 	def bad_status(self):
 		'''send report info when error'''
 		self.msg_log = None
@@ -158,8 +156,10 @@ class Page(object):
 		#http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
 		#http://stackoverflow.com/questions/6925825/get-subdomain-from-url-using-python
 		#previous url
+
 		self.netloc = urlparse(self.url).netloc
 		#next url
+		
 		uid = urlparse(url)
 		
 		#if url not in [ '#', None, '\n', '' ] and 'javascript' not in url and url != "/" and url is not None:
@@ -234,16 +234,22 @@ if __name__ == '__main__':
 	#constitution de la base
 	for n in liste:
 		p = Page(n, query)
-		print p.request()
-		print p.extract()
-		print p.next_step()
-		print p.getter()
-
-		if p.request() and p.extract() and p.next_step() and p.getter():
-			print p.info
-			db.results.insert(p.info)
-			db.sources.insert({"url":p.info["url"]})
-			db.queue.insert([{"url":url} for url in p.outlinks])
+		if p.url is None:
+			p.bad_status()
+			db.log.insert(p.msg_log)
+			continue
+		else:
+			if p.request() and p.extract() and p.next_step() and p.getter():
+				print p.info
+				db.results.insert(p.info)
+				db.sources.insert({"url":p.info["url"]})
+				db.queue.insert([{"url":url} for url in p.outlinks])
+			else:
+				p.bad_status()
+				if p.msg_log is not None:
+					db.log.insert(p.msg_log)
+				else:
+					continue	
 	print "Nb de sources", db.sources.count()
 	print "Nb urls en traitement", db.queue.count()
 	
@@ -260,3 +266,4 @@ if __name__ == '__main__':
 				db.log.insert(p.msg_log)
 		db.queue.remove({"url": n})
 	
+
