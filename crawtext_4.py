@@ -18,7 +18,7 @@ from urlparse import urlparse
 from random import choice
 from goose import Goose
 from tld import get_tld
-
+from datetime import datetime
 import __future__
 
 
@@ -50,74 +50,22 @@ class Page(object):
 		self.query = query
 		self.db = db
 		self.status = None
-		if url is None or url == "":
-			self.status = False
-		self.domain = None
-	def do_page(self, url, query):
-		self.pre_check(url)
-		self.request()
-		self.check()
-		self.extract()
-
-
-	def bad_status(self):
-		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}'''
-		self.msg_log = None
-		try:
-			self.msg_log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
-		except AttributeError:
-			try:
-				self.msg_log = {"url":self.url, "error_code": "Undefined", "type": self.error_type, "status": False}
-		 	except AttributeError:
-				pass
-		return self.msg_log
+		self.error_type = None
+		self.info = {}
 				
-	def pre_check(self, url=None):
-		''' check the format of the next url compared to curr url : boolean answer'''
-		#curr url is self.url
-		#next url is url
-		
-		#current link
-		if self.url is not None or len(self.url) > 1 or self.url == "\n":
-			self.curr = urlparse(self.url)
-			if (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
-				self.error_type="Url has not a proprer extension or page is an advertissement"
-				return False
-			else:
-				if url is not None:
-					self.next = urlparse(self.url)
-					if self.next.netloc == '' or len(self.next.netloc) <=1 or self.next.netloc is None:
-						return False
-					else:	
-						print "Urlparse", self.next.netloc
-						return True
-		else:
-			return False	
-		#~ try:
-		#~ except Exception, e:
-			#~ self.error_type="Not a valid url and domain name"
-			#~ self.status = False
-			#~ return False
-		
-	def check(self):
-		'''control the result of request return a boolean '''
-		if 'text/html' not in self.req.headers['content-type']:
-			self.error_type="Content type is not TEXT/HTML"
+	def check(self, url=None):
+		'''Bool: check the format of the next url compared to curr url'''
+		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
+			self.error_type = "Url is empty"
 			return False
-		#Error on ressource or on server
-		elif self.req.status_code in range(400,520):
-			self.error_type="Connexion error"
+		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
+			self.error_type="Url has not a proprer extension or page is an advertissement"
 			return False
-			#Redirect
-			#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
-				#~ self.error_type="Redirection"
-				#~ self.bad_status()
-				#~ return False
 		else:
-			return True	
+			return True
 		
 	def request(self):
-		'''request a webpage: return boolean'''
+		'''request a webpage: return boolean and update src'''
 		try:
 			requests.adapters.DEFAULT_RETRIES = 2
 			user_agents = [u'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1', u'Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2', u'Mozilla/5.0 (compatible; MSIE 10.6; Windows NT 6.1; Trident/5.0; InfoPath.2; SLCC1; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727) 3gpp-gba UNTRUSTED/1.0', u'Opera/9.80 (Windows NT 6.1; U; es-ES) Presto/2.9.181 Version/12.00']
@@ -141,46 +89,45 @@ class Page(object):
 			self.error_type = str(e)
 			return False
 		
+	def control(self):
+		'''control the result of request return a boolean'''
+		#Content-type is not html 
+		if 'text/html' not in self.req.headers['content-type']:
+			self.error_type="Content type is not TEXT/HTML"
+			return False
+		#Error on ressource or on server
+		elif self.req.status_code in range(400,520):
+			self.error_type="Connexion error"
+			return False
+		#Redirect
+		#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
+			#~ self.error_type="Redirection"
+			#~ self.bad_status()
+			#~ return False
+		else:
+			return True	
+	
 	def extract(self):
-		'''extract content and info of webpage return boolean'''
+		'''extract content and info of webpage return boolean and self.info'''
 		try:
-			self.soup = bs(self.src)
 			g = Goose()
 			article = g.extract(raw_html=self.src)
 			self.title = article.title
 			self.text = article.cleaned_text
 			self.description = bs(article.meta_description).text
-			return True
+			self.outlinks = [self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})]
+			self.backlinks = [n for n in self.outlinks if n == self.url]
+			self.info = {"url":self.url,
+						"outlinks": self.outlinks,
+						"backlinks":self.backlinks,
+						"texte": self.text,
+						"title": self.title
+						}
+			return self.info
 		except Exception, e:
 			self.error_type = str(e)
-			return False
-		
-				
-	def clean_url(self, url):
-		''' utility to normalize url and discard unwanted extension : return a url'''
-		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
-		clean_url = None
-		if url not in [ "#","/", None, "\n", "",] or url not in 'javascript':
-			self.netloc = urlparse(self.url).netloc
-			uid = urlparse(url)
-			#if next_url is relative take previous url netloc
-			if uid.netloc == "":
-				if len(uid.path) <=1:
-					return None			
-				elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
-					clean_url = "http://"+self.netloc+"/"+uid.path
-				else:
-					clean_url = "http://"+self.netloc+uid.path
-			else:
-				clean_url = url
-		return clean_url		
-		
-	def next_step(self):
-		'''return a list of outlinks and backlinks'''
-		self.outlinks = [self.clean_url(url=e.attrs['href']) for e in self.soup.find_all('a', {'href': True})]
-		self.backlinks = [n for n in self.outlinks if n == self.url]	
-		return self
-				
+			return False	
+					
 	def filter(self):
 		'''Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
 		if 'OR' in self.query:
@@ -198,59 +145,70 @@ class Page(object):
 			return bool(re.search(query4re, self.src, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 			 	
 		
-	def getter(self):
+	def bad_status(self):
+		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}'''
 		try:
-			self.info = {
-						"source": self.domain,
-						"url":self.url,
-						"outlinks": self.outlinks,
-						"backlinks":self.backlinks,
-						"texte": self.text,
-						"title": self.title
-						}
-							
-			return True
-		except AttributeError, e:
-			print e
-			self.status = False
-			self.error_type = str(e.args)
-			return False
-		
+			self.code = self.req.status_code
+		except AttributeError:
+			self.code = None
+		return {"url":self.url, "error_code": self.code, "type": self.error_type, "status": False}
+		# except Exception as e:
+		# 	self.msg_log = {"url":self.url, "error_code": "Undefined", "type": str(e), "status": False}
+		#  	return self.msg_log
+	
+	def clean_url(self, url):
+		''' utility to normalize url and discard unwanted extension : return a url or None'''
+		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
+		if url not in [ "#","/", None, "\n", "",] or url not in 'javascript':
+			self.netloc = urlparse(self.url).netloc
+			uid = urlparse(url)
+			#if next_url is relative take previous url netloc
+			if uid.netloc == "":
+				if len(uid.path) <=1:
+					return None			
+				elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
+					clean_url = "http://"+self.netloc+"/"+uid.path
+				else:
+					clean_url = "http://"+self.netloc+uid.path
+			else:
+				clean_url = url
+			return clean_url
+		else:
+			return None			
+
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_13")
+	db = Database("test_crawltext_14")
 	db.create_tables()
 	
 	#constitution de la base
 	for n in liste:
-		print n
 		p = Page(n, query)
-		if (p.request() and p.extract() and p.next_step() and p.getter()) is True:
+		if p.check() and p.request() and p.control() and p.extract() and p.filter():
 			db.results.insert(p.info)
-			db.sources.insert({"url":p.info["url"]})
-			print p.outlinks
+			db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
 			db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
-			print p.request(), p.extract(), p.next_step(), p.getter()
-			print p.bad_status()
-			db.log.insert(p.msg_log)
+			db.log.insert(p.bad_status())  
 					
 	print "Nb de sources", db.sources.count()
 	print "Nb urls en traitement", db.queue.count()
 	print "nb erreur", db.log.count()
 	while db.queue.count > 0:
 		for n in db.queue.distinct("url"):	
-			p = Page(n, query)
-			if p.request() and p.extract() and p.next_step() and p.getter():
-				#print p.info["title"]
-				if (p.info["texte"] not in db.queue.find({"texte": p.info["texte"]})):
+			if n not in db.queue.distinct("url"):
+				p = Page(n, query)
+				if p.check() and p.request() and p.control() and p.extract() and p.filter():
 					db.results.insert(p.info)
-					db.queue.insert([{"url":url} for url in p.outlinks])
+					if p.outlinks is not None or len(p.outlinks) > 0:
+						db.queue.insert([{"url":url} for url in p.outlinks])
+				else:
+					db.log.insert(p.bad_status())
 			else:
-				p.bad_status()
-				if p.msg_log is not None:
-					db.log.insert(p.msg_log)
+				continue
 			db.queue.remove({"url": n})
-	
-
+			print "En traitement", db.queue.count()
+			print "Resultats", db.results.count()
+			print "Erreur", db.log.count()
+	print "traitement terminé"
