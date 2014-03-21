@@ -214,7 +214,11 @@ def Crawler(db_name, query):
 				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
 					if p.outlinks is not None:
-						db.queue.insert([{"url":url} for url if url not in db.queue.distinct("url")])
+						db.queue.insert([{"url":url} for url in p.outlinks 
+											if url not in db.queue.distinct("url") 
+											or url not in db.results.distinct("url") 
+											or url not in db.log.distinct("url")
+										])
 				else:
 					db.log.insert(p.bad_status())
 			db.queue.remove({"url": n})
