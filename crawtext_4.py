@@ -51,7 +51,8 @@ class Page(object):
 		self.status = None
 		self.error_type = None
 		self.info = {}
-				
+		self.outlinks = None
+
 	def check(self, url=None):
 		'''Bool: check the format of the next url compared to curr url'''
 		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
@@ -111,7 +112,11 @@ class Page(object):
 		try:
 			g = Goose()
 			article = g.extract(raw_html=self.src)
-			self.info = {"url":self.url,
+			if self.filter() is True:
+				self.outlinks = list(set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})]))
+			self.info = {	
+						"url":self.url,
+						"domain": get_tld(self.url),
 						"outlinks": self.outlinks,
 						"backlinks":[n for n in self.outlinks if n == self.url],
 						"texte": article.cleaned_text,
@@ -192,16 +197,21 @@ def InitSeeds(sources_list, db_name):
 def Sourcing(db_name):
 	db = Database(db_name)
 	db.create_tables()
-	db.queue.insert([{"url":url} for url in db.sources.distinct("url")])
-	return True
+	sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
+	if len(sources_queue) != 0:
+		yield db.queue.insert(sources_queue)
+		 
 
-def Crawler(db, query):
+def Crawler(db_name, query):
+	db = Database(db_name)
+	db.create_tables()
+	print db.queue.count()
 	while db.queue.count > 0:
 		print "beginning crawl"
 		for n in db.queue.distinct("url"):	
 			if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
 				p = Page(n, query)
-				if p.check() and p.request() and p.control() and p.extract() and p.filter():
+				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
 					for url in p.outlinks:
 						if url is not None and url not in db.queue.distinct("url"):
@@ -225,7 +235,7 @@ if __name__ == '__main__':
 	query= "algues vertes OR algue verte"
 	 
 	print "ok"
-	#InitSeeds(liste, "db_test_crawtest_19")
-	Sourcing("db_test_crawtest_19")
-	
+	InitSeeds(liste, "db_test_crawtest_19")
+	#Sourcing("db_test_crawtest_19")
+	Crawler("db_test_crawtest_19", query)
 	
