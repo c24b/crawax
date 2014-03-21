@@ -177,9 +177,9 @@ class Page(object):
 			return None			
 
 if __name__ == '__main__':
-	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes","http://www.developpement-durable.gouv.fr/Que-sont-les-algues-vertes-Comment.html"]
+	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
 	query= "algues vertes OR algue verte"
-	db = Database("test_crawltext_14")
+	db = Database("test_crawltext_15")
 	db.create_tables()
 	
 	#constitution de la base
@@ -188,6 +188,7 @@ if __name__ == '__main__':
 		if p.check() and p.request() and p.control() and p.extract() and p.filter():
 			db.results.insert(p.info)
 			db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
+			print len(p.outlinks)
 			db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
 			db.log.insert(p.bad_status())  
@@ -196,13 +197,16 @@ if __name__ == '__main__':
 	print "Nb urls en traitement", db.queue.count()
 	print "nb erreur", db.log.count()
 	while db.queue.count > 0:
+		print "beginning crawl"
 		for n in db.queue.distinct("url"):	
-			if n not in db.queue.distinct("url"):
+			if n not in db.results.distinct("url"):
 				p = Page(n, query)
 				if p.check() and p.request() and p.control() and p.extract() and p.filter():
 					db.results.insert(p.info)
 					if p.outlinks is not None or len(p.outlinks) > 0:
 						db.queue.insert([{"url":url} for url in p.outlinks])
+					else:
+						continue
 				else:
 					db.log.insert(p.bad_status())
 			else:
