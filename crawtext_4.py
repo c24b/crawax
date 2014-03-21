@@ -54,15 +54,15 @@ class Page(object):
 			# self.domain = None
 	def bad_status(self):
 		'''send report info when error'''
-		self.log = None
+		self.msg_log = None
 		try:
-			self.log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
+			self.msg_log = {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
 		except AttributeError:
 			try:
-				self.log = {"url":self.url, "error_code": "Undefined", "type": self.error_type, "status": False}
+				self.msg_log = {"url":self.url, "error_code": "Undefined", "type": self.error_type, "status": False}
 		 	except AttributeError:
 				pass
-			return self.log
+		return self.msg_log
 				
 	def pre_check(self, url= None):
 		''' check the format of the url
@@ -256,7 +256,7 @@ if __name__ == '__main__':
 				db.queue.insert([{"url":url} for url in p.outlinks])
 		else:
 			p.bad_status()
-			if p.log is not None:
-				db.log.insert(log_msg)
+			if p.msg_log is not None:
+				db.log.insert(p.msg_log)
 		db.queue.remove({"url": n})
 	
