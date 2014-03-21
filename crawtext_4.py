@@ -111,16 +111,12 @@ class Page(object):
 		try:
 			g = Goose()
 			article = g.extract(raw_html=self.src)
-			self.title = article.title
-			self.text = article.cleaned_text
-			self.description = bs(article.meta_description).text
-			self.outlinks = [self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})]
-			self.backlinks = [n for n in self.outlinks if n == self.url]
 			self.info = {"url":self.url,
 						"outlinks": self.outlinks,
-						"backlinks":self.backlinks,
-						"texte": self.text,
-						"title": self.title
+						"backlinks":[n for n in self.outlinks if n == self.url],
+						"texte": article.cleaned_text,
+						"title": article.title,
+						"meta_description":bs(article.meta_description).text
 						}
 			return self.info
 		except Exception, e:
