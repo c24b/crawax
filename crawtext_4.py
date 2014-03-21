@@ -213,15 +213,10 @@ def Crawler(db_name, query):
 				p = Page(n, query)
 				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
-					for url in p.outlinks:
-						if url is not None and url not in db.queue.distinct("url"):
-							db.queue.insert({"url":url})
-					else:
-						continue
+					if p.outlinks is not None:
+						db.queue.insert([{"url":url} for url if url not in db.queue.distinct("url")])
 				else:
 					db.log.insert(p.bad_status())
-			else:
-				continue
 			db.queue.remove({"url": n})
 			print "En traitement", db.queue.count()
 			print "Resultats", db.results.count()
@@ -235,7 +230,7 @@ if __name__ == '__main__':
 	query= "algues vertes OR algue verte"
 	 
 	print "ok"
-	InitSeeds(liste, "db_test_crawtest_19")
+	InitSeeds(liste, "db_test_crawtest_20")
 	#Sourcing("db_test_crawtest_19")
-	Crawler("db_test_crawtest_19", query)
+	Crawler("db_test_crawtest_20", query)
 	
