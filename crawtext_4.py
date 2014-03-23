@@ -185,15 +185,15 @@ class Discovery():
 		if path is not None:
 			self.get_local()	
 		
-	def send_to_queue(self, db):	
+	def send_to_sources(self, db):	
 		for n in self.seeds:
 			p = Page(n, query)
 			if p.check() and p.request() and p.control() and p.extract() and p.filter():
 				db.results.insert(p.info)
 				db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
-				for url in p.outlinks:
-					if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
-						db.queue.insert({"url":url})
+				# for url in p.outlinks:
+				# 	if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
+				# 		db.queue.insert({"url":url})
 			else:
 				db.log.insert(p.bad_status())  
 						
