@@ -174,7 +174,7 @@ class Page(object):
 			return None			
 
 class Discovery():
-	'''special method to produces seeds url and send queue'''
+	'''special method to produces seeds url and send it to sources'''
 	def __init__(self, db_name, path, api_key, query):
 		#constitution de la base
 		db = Database(db_name)
@@ -215,20 +215,20 @@ class Discovery():
 				},
 				auth=(self.key, self.key)
 				)
-
-
-			for e in r.json()['d']['results']:
-				self.seeds.add(e['Url'])
+			self.seeds.add([e['Url'] for e in r.json()['d']['results']])
 			return True
 		except:
+			self.error_type = "Error fetching results from BING API, check your credentials. May exceed the 5000req/month limit "
 			return False
 
 	def get_local(self):
 		''' Method to extract url list from text file'''
 		try:
-			for url in open(self.path).readlines():
-				self.seeds.add(url)
+			self.seeds.add(url for url in open(self.path).readlines())
 			return True
+		except:
+			self.error_type = "Error fetching results from file %s. Check if file exists" %path
+			return False			
 
 def Sourcing(db_name):
 	'''simple producer : insert from sources database to processing queue'''
@@ -252,12 +252,16 @@ def Crawler(db_name, query):
 				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
 					if p.outlinks is not None:
-						# à désempaqueter?
-						db.queue.insert([{"url":url} for url in p.outlinks 
+						
+						# à désempaqueter? si aucun lien Bulk insert errir
+						try:
+							db.queue.insert([{"url":url} for url in p.outlinks 
 											if url not in db.queue.distinct("url") 
 											or url not in db.results.distinct("url") 
 											or url not in db.log.distinct("url")
 										])
+						except pymongo.Error:
+							continue
 				else:
 					db.log.insert(p.bad_status())
 			db.queue.remove({"url": n})
