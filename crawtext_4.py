@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+'''Crawtext.
+
+Usage:
+	crawtext_4.py (discovery <projet_name> <query> [--f=<filename>] [--key=<bing_api_key>]| sourcing <projet_name> <query>)
+Options:
+	-h --help
+	-f FILE --filename=FILE
+	-k KEY --key=KEY <file>   
+'''
 
 from os.path import exists
 import sys
@@ -9,8 +18,6 @@ import re
 #import threading
 #import Queue
 import pymongo
-
-
 from pymongo import MongoClient
 from pymongo import errors
 from bs4 import BeautifulSoup as bs
@@ -20,14 +27,17 @@ from goose import Goose
 from tld import get_tld
 from datetime import datetime
 import __future__
+from docopt import docopt
+from abpy import Filter
+
 
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
-from abpy import Filter
 adblock = Filter(file('easylist.txt'))
 
 
-class Database():
+class Database(object):
+	'''Database creation''' 
 	def __init__(self, database_name):
 		self.name = database_name
 		client = MongoClient('mongodb://localhost,localhost:27017')
@@ -45,6 +55,7 @@ class Database():
 		return self
 			
 class Page(object):
+	'''Page factory'''
 	def __init__(self, url, query):
 		self.url = url
 		self.query = query
@@ -175,16 +186,17 @@ class Page(object):
 
 class Discovery():
 	'''special method to produces seeds url and send it to sources'''
-	def __init__(self, db_name, path, api_key, query):
+	def __init__(self, db_name, query, path=None, api_key=None):
 		#constitution de la base
 		db = Database(db_name)
 		db.create_tables()
 		self.seeds = set()
-		if query is not None and api_key is not None:
-			self.get_bing()
-		if path is not None:
-			self.get_local()	
-		self.send_to_sources(db)
+		if query is not None:
+			if api_key is not None:
+				self.get_bing()
+			if path is not None:
+				self.get_local()	
+			self.send_to_sources(db)
 		print "Il y a désormais %s sources dans la base de données" %db.sources.count()
 
 	def send_to_sources(self, db):	
@@ -233,6 +245,7 @@ class Discovery():
 			return False			
 
 class Sourcing():
+	'''method for inserting data in process queue'''
 	def __init__(self,db_name):
 		'''simple producer : insert from sources database to processing queue'''
 		db = Database(db_name)
@@ -276,12 +289,19 @@ class Crawler():
 				break
 		return "traitement terminé"
 
+def main(docopt_args):
+	print "main"
+	return docopt_args
 
-if __name__ == '__main__':
-	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
-	query= "algues vertes OR algue verte"
-	print "ok"
-	InitSeeds(liste, "db_test_crawtest_20")
-	#Sourcing("db_test_crawtest_19")
-	Crawler("db_test_crawtest_20", query)
+if __name__ == "__main__":
+	args = docopt(__doc__)
+	print main(args)
+	
+	#print(docopt(__doc__, version='0.1'))
+	# liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
+	# query= "algues vertes OR algue verte"
+	# print "ok"
+	# InitSeeds(liste, "db_test_crawtest_20")
+	# #Sourcing("db_test_crawtest_19")
+	# Crawler("db_test_crawtest_20", query)
 	
