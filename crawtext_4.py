@@ -113,7 +113,7 @@ class Page(object):
 			g = Goose()
 			article = g.extract(raw_html=self.src)
 			if self.filter() is True:
-				self.outlinks = list(set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})]))
+				self.outlinks = set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})])
 			self.info = {	
 						"url":self.url,
 						"domain": get_tld(self.url),
@@ -173,28 +173,65 @@ class Page(object):
 		else:
 			return None			
 
-def InitSeeds(sources_list, db_name):
-	#constitution de la base
-	db = Database(db_name)
-	db.create_tables()
-	
-	for n in liste:
-		p = Page(n, query)
-		if p.check() and p.request() and p.control() and p.extract() and p.filter():
-			db.results.insert(p.info)
-			db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
-			for url in p.outlinks:
-				if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
-					db.queue.insert({"url":url})
-		else:
-			db.log.insert(p.bad_status())  
-					
-	print "Nb de sources", db.sources.count()
-	print "Nb urls en traitement", db.queue.count()
-	print "nb erreur", db.log.count()
-	return db
+class Discovery():
+	'''special method to produces seeds url and send queue'''
+	def __init__(self, db_name, path, api_key, query):
+		#constitution de la base
+		db = Database(db_name)
+		db.create_tables()
+		self.seeds = set()
+		if query is not None and api_key is not None:
+			self.get_bing()
+		if path is not None:
+			self.get_local()	
+		
+	def send_to_queue(self, db):	
+		for n in self.seeds:
+			p = Page(n, query)
+			if p.check() and p.request() and p.control() and p.extract() and p.filter():
+				db.results.insert(p.info)
+				db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
+				for url in p.outlinks:
+					if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
+						db.queue.insert({"url":url})
+			else:
+				db.log.insert(p.bad_status())  
+						
+		print "Nb de sources", db.sources.count()
+		print "Nb urls en traitement", db.queue.count()
+		print "nb erreur", db.log.count()
+		return db
+
+	def get_bing(self):
+		''' Method to extract results from BING API (Limited to 5000 req/month). ''' 
+		
+		try:
+			r = requests.get(
+				'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
+				params={
+					'$format' : 'json',
+					'$top' : 10,
+					'Query' : '\'%s\'' % self.query,
+				},
+				auth=(self.key, self.key)
+				)
+
+
+			for e in r.json()['d']['results']:
+				self.seeds.add(e['Url'])
+			return True
+		except:
+			return False
+
+	def get_local(self):
+		''' Method to extract url list from text file'''
+		try:
+			for url in open(self.path).readlines():
+				self.seeds.add(url)
+			return True
 
 def Sourcing(db_name):
+	'''simple producer : insert from sources database to processing queue'''
 	db = Database(db_name)
 	db.create_tables()
 	sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
@@ -203,6 +240,7 @@ def Sourcing(db_name):
 		 
 
 def Crawler(db_name, query):
+	'''the main consumer from queue insert into results or log'''
 	db = Database(db_name)
 	db.create_tables()
 	print db.queue.count()
@@ -233,7 +271,6 @@ def Crawler(db_name, query):
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
 	query= "algues vertes OR algue verte"
-	 
 	print "ok"
 	InitSeeds(liste, "db_test_crawtest_20")
 	#Sourcing("db_test_crawtest_19")
