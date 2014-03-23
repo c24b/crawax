@@ -6,8 +6,8 @@ import sys
 import requests
 import json
 import re
-import threading
-import Queue
+#import threading
+#import Queue
 import pymongo
 
 
@@ -184,7 +184,9 @@ class Discovery():
 			self.get_bing()
 		if path is not None:
 			self.get_local()	
-		
+		self.send_to_sources(db)
+		print "Il y a désormais %s sources dans la base de données" %db.sources.count()
+
 	def send_to_sources(self, db):	
 		for n in self.seeds:
 			p = Page(n, query)
@@ -196,7 +198,7 @@ class Discovery():
 				# 		db.queue.insert({"url":url})
 			else:
 				db.log.insert(p.bad_status())  
-						
+		#Todo: integrate it into report				
 		print "Nb de sources", db.sources.count()
 		print "Nb urls en traitement", db.queue.count()
 		print "nb erreur", db.log.count()
@@ -230,47 +232,50 @@ class Discovery():
 			self.error_type = "Error fetching results from file %s. Check if file exists" %path
 			return False			
 
-def Sourcing(db_name):
-	'''simple producer : insert from sources database to processing queue'''
-	db = Database(db_name)
-	db.create_tables()
-	sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
-	if len(sources_queue) != 0:
-		yield db.queue.insert(sources_queue)
+class Sourcing():
+	def __init__(self,db_name):
+		'''simple producer : insert from sources database to processing queue'''
+		db = Database(db_name)
+		db.create_tables()
+		sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
+		if len(sources_queue) != 0:
+			yield db.queue.insert(sources_queue)
 		 
 
-def Crawler(db_name, query):
-	'''the main consumer from queue insert into results or log'''
-	db = Database(db_name)
-	db.create_tables()
-	print db.queue.count()
-	while db.queue.count > 0:
-		print "beginning crawl"
-		for n in db.queue.distinct("url"):	
-			if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
-				p = Page(n, query)
-				if p.check() and p.request() and p.control() and p.extract():
-					db.results.insert(p.info)
-					if p.outlinks is not None:
-						
-						# à désempaqueter? si aucun lien Bulk insert errir
-						try:
-							db.queue.insert([{"url":url} for url in p.outlinks 
-											if url not in db.queue.distinct("url") 
-											or url not in db.results.distinct("url") 
-											or url not in db.log.distinct("url")
-										])
-						except pymongo.Error:
-							continue
-				else:
-					db.log.insert(p.bad_status())
-			db.queue.remove({"url": n})
-			print "En traitement", db.queue.count()
-			print "Resultats", db.results.count()
-			print "Erreur", db.log.count()
-		if db.queue.count() == 0:
-			break
-	return "traitement terminé"
+class Crawler():
+	def __init__(self,db_name, query):
+		'''the main consumer from queue insert into results or log'''
+		db = Database(db_name)
+		db.create_tables()
+		print db.queue.count()
+		while db.queue.count > 0:
+			print "beginning crawl"
+			for n in db.queue.distinct("url"):	
+				if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
+					p = Page(n, query)
+					if p.check() and p.request() and p.control() and p.extract():
+						db.results.insert(p.info)
+						if p.outlinks is not None:
+							
+							# à désempaqueter? si aucun lien Bulk insert errir
+							try:
+								db.queue.insert([{"url":url} for url in p.outlinks 
+												if url not in db.queue.distinct("url") 
+												or url not in db.results.distinct("url") 
+												or url not in db.log.distinct("url")
+											])
+							except pymongo.errors:
+								continue
+					else:
+						db.log.insert(p.bad_status())
+				db.queue.remove({"url": n})
+				print "En traitement", db.queue.count()
+				print "Resultats", db.results.count()
+				print "Erreur", db.log.count()
+			if db.queue.count() == 0:
+				break
+		return "traitement terminé"
+
 
 if __name__ == '__main__':
 	liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
