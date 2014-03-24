@@ -325,11 +325,11 @@ if __name__ == "__main__":
 	config = {'apscheduler.jobstores.file.class': 'apscheduler.jobstores.shelve_store:ShelveJobStore',
           'apscheduler.jobstores.file.path': '/tmp/dbfile'}
 	sched = Scheduler(config)
-
 	if args['--repeat']:
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		sched.add_cron_job(n.crawl(), day_of_week='mon', hour=5, minute=30, jobstore=docopt_args['<project>'])
 	if args['--stop']:
+		print sched.print_jobs()
 		remove_jobstore(docopt_args['<project>'], close=True)	
 	#print(docopt(__doc__, version='0.1'))
 	# liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
