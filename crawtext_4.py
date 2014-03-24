@@ -71,6 +71,7 @@ class Page(object):
 
 	def check(self, url=None):
 		'''Bool: check the format of the next url compared to curr url'''
+		print self.url
 		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
 			self.error_type = "Url is empty"
 			return False
@@ -195,23 +196,20 @@ class Discovery():
 		#constitution de la base
 		db = Database(db_name)
 		db.create_tables()
-		self.seeds = set()
+		self.seeds = []
 		self.path = path
 		self.key = api_key
-		self.query = query
-		if self.query is not None:
+		if query is not None:
 			if self.path is not None:
 				self.get_local()
-			if self.query is not None:
+			if query is not None:
 				self.get_bing()
-		print len(self.seeds)		
-		self.send_to_sources(db)
+		self.send_to_sources(db, query)
 		print "Il y a désormais %s sources dans la base de données" %db.sources.count()
 
-	def send_to_sources(self, db):	
+	def send_to_sources(self, db, query):	
 		for n in self.seeds:
-			print n
-			p = Page(n, self.query)
+			p = Page(n, query)
 			if p.check() and p.request() and p.control() and p.extract() and p.filter():
 				db.results.insert(p.info)
 				db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
@@ -240,8 +238,8 @@ class Discovery():
 				auth=(self.key, self.key)
 				)
 			for e in r.json()['d']['results']:
-				self.seeds.add(e['Url']) 
-			self.seeds = list(self.seeds)
+				self.seeds.append(e['Url']) 
+			self.seeds = list(set(self.seeds))
 			return True
 		except:
 			self.error_type = "Error fetching results from BING API, check your credentials. May exceed the 5000req/month limit "
@@ -250,8 +248,9 @@ class Discovery():
 	def get_local(self):
 		''' Method to extract url list from text file'''
 		try:
-			self.seeds.add(url for url in open(self.path).readlines())
-			self.seeds = list(self.seeds)
+			for url in open(self.path).readlines():
+				self.seeds.append(url) 
+			self.seeds = list(set(self.seeds))
 			return True
 		except:
 			self.error_type = "Error fetching results from file %s. Check if file exists" %self.path
@@ -272,23 +271,25 @@ class Crawler():
 	def __init__(self,db_name, query):
 		'''the main consumer from queue insert into results or log'''
 		db = Database(db_name)
+		db.create_tables()
 		print db.queue.count()
 		self.db = db
+		self.query = query
 
 	def crawl(self):	
 		while self.db.queue.count > 0:
 			print "beginning crawl"
 			for n in self.db.queue.distinct("url"):	
-				if n not in self.db.results.distinct("url") or n not in db.log.distinct("url"):
-					p = Page(n, query)
+				if n not in self.db.results.distinct("url") or n not in self.db.log.distinct("url"):
+					p = Page(n, self.query)
 					if p.check() and p.request() and p.control() and p.extract():
 						self.db.results.insert(p.info)
 						if p.outlinks is not None:
 							try:
 								self.db.queue.insert([{"url":url} for url in p.outlinks 
-												if url not in db.queue.distinct("url") 
-												or url not in db.results.distinct("url") 
-												or url not in db.log.distinct("url")
+												if url not in self.db.queue.distinct("url") 
+												or url not in self.db.results.distinct("url") 
+												or url not in self.db.log.distinct("url")
 											])
 							except pymongo.errors:
 								continue
@@ -298,9 +299,9 @@ class Crawler():
 				print "En traitement", self.db.queue.count()
 				print "Resultats", self.db.results.count()
 				print "Erreur", self.db.log.count()
-				if db.queue.count() == 0:
+				if self.db.queue.count() == 0:
 					break
-			if db.queue.count() == 0:
+			if self.db.queue.count() == 0:
 					break
 		return True
 
@@ -311,8 +312,10 @@ def main(docopt_args):
 		Sourcing(db_name=docopt_args['<project>'])
 	elif docopt_args['sourcing'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
-	return Crawler(db_name=docopt_args['<project>'], query=docopt_args).crawl() 
-
+	n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
+	n.crawl() 
+	return n
+	
 if __name__ == "__main__":
 	args = docopt(__doc__)
 	main(args)
