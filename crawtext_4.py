@@ -3,11 +3,16 @@
 '''Crawtext.
 
 Usage:
-	crawtext_4.py (discovery <projet_name> <query> [--f=<filename>] [--key=<bing_api_key>]| sourcing <projet_name> <query>)
+	crawtext_4.py <project> sourcing <query>
+	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+	crawtext_4.py (-h | --help)
+  	crawtext_4.py --version
+
 Options:
-	-h --help
-	-f FILE --filename=FILE
-	-k KEY --key=KEY <file>   
+	--file Complete path of the sourcefile.
+	--key  Bing API Key for Search. 
+	-h --help Show usage and Options.
+	--version Show versions.  
 '''
 
 from os.path import exists
@@ -128,7 +133,7 @@ class Page(object):
 			self.info = {	
 						"url":self.url,
 						"domain": get_tld(self.url),
-						"outlinks": self.outlinks,
+						"outlinks": list(self.outlinks),
 						"backlinks":[n for n in self.outlinks if n == self.url],
 						"texte": article.cleaned_text,
 						"title": article.title,
@@ -191,17 +196,22 @@ class Discovery():
 		db = Database(db_name)
 		db.create_tables()
 		self.seeds = set()
-		if query is not None:
-			if api_key is not None:
+		self.path = path
+		self.key = api_key
+		self.query = query
+		if self.query is not None:
+			if self.path is not None:
+				self.get_local()
+			if self.query is not None:
 				self.get_bing()
-			if path is not None:
-				self.get_local()	
-			self.send_to_sources(db)
+		print len(self.seeds)		
+		self.send_to_sources(db)
 		print "Il y a désormais %s sources dans la base de données" %db.sources.count()
 
 	def send_to_sources(self, db):	
 		for n in self.seeds:
-			p = Page(n, query)
+			print n
+			p = Page(n, self.query)
 			if p.check() and p.request() and p.control() and p.extract() and p.filter():
 				db.results.insert(p.info)
 				db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
@@ -224,12 +234,14 @@ class Discovery():
 				'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
 				params={
 					'$format' : 'json',
-					'$top' : 10,
+					'$top' : 50,
 					'Query' : '\'%s\'' % self.query,
 				},
 				auth=(self.key, self.key)
 				)
-			self.seeds.add([e['Url'] for e in r.json()['d']['results']])
+			for e in r.json()['d']['results']:
+				self.seeds.add(e['Url']) 
+			self.seeds = list(self.seeds)
 			return True
 		except:
 			self.error_type = "Error fetching results from BING API, check your credentials. May exceed the 5000req/month limit "
@@ -239,9 +251,10 @@ class Discovery():
 		''' Method to extract url list from text file'''
 		try:
 			self.seeds.add(url for url in open(self.path).readlines())
+			self.seeds = list(self.seeds)
 			return True
 		except:
-			self.error_type = "Error fetching results from file %s. Check if file exists" %path
+			self.error_type = "Error fetching results from file %s. Check if file exists" %self.path
 			return False			
 
 class Sourcing():
@@ -252,27 +265,27 @@ class Sourcing():
 		db.create_tables()
 		sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
 		if len(sources_queue) != 0:
-			yield db.queue.insert(sources_queue)
-		 
+			db.queue.insert(sources_queue)
+
 
 class Crawler():
 	def __init__(self,db_name, query):
 		'''the main consumer from queue insert into results or log'''
 		db = Database(db_name)
-		db.create_tables()
 		print db.queue.count()
-		while db.queue.count > 0:
+		self.db = db
+
+	def crawl(self):	
+		while self.db.queue.count > 0:
 			print "beginning crawl"
-			for n in db.queue.distinct("url"):	
-				if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
+			for n in self.db.queue.distinct("url"):	
+				if n not in self.db.results.distinct("url") or n not in db.log.distinct("url"):
 					p = Page(n, query)
 					if p.check() and p.request() and p.control() and p.extract():
-						db.results.insert(p.info)
+						self.db.results.insert(p.info)
 						if p.outlinks is not None:
-							
-							# à désempaqueter? si aucun lien Bulk insert errir
 							try:
-								db.queue.insert([{"url":url} for url in p.outlinks 
+								self.db.queue.insert([{"url":url} for url in p.outlinks 
 												if url not in db.queue.distinct("url") 
 												or url not in db.results.distinct("url") 
 												or url not in db.log.distinct("url")
@@ -280,22 +293,29 @@ class Crawler():
 							except pymongo.errors:
 								continue
 					else:
-						db.log.insert(p.bad_status())
-				db.queue.remove({"url": n})
-				print "En traitement", db.queue.count()
-				print "Resultats", db.results.count()
-				print "Erreur", db.log.count()
+						self.db.log.insert(p.bad_status())
+				self.db.queue.remove({"url": n})
+				print "En traitement", self.db.queue.count()
+				print "Resultats", self.db.results.count()
+				print "Erreur", self.db.log.count()
+				if db.queue.count() == 0:
+					break
 			if db.queue.count() == 0:
-				break
-		return "traitement terminé"
+					break
+		return True
+
 
 def main(docopt_args):
-	print "main"
-	return docopt_args
+	if docopt_args['discovery'] is True:
+		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
+		Sourcing(db_name=docopt_args['<project>'])
+	elif docopt_args['sourcing'] is True:
+		Sourcing(db_name=docopt_args['<project>'])
+	return Crawler(db_name=docopt_args['<project>'], query=docopt_args).crawl() 
 
 if __name__ == "__main__":
 	args = docopt(__doc__)
-	print main(args)
+	main(args)
 	
 	#print(docopt(__doc__, version='0.1'))
 	# liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
