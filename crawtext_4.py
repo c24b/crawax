@@ -3,14 +3,16 @@
 '''Crawtext.
 
 Usage:
-	crawtext_4.py <project> sourcing <query>
-	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+	crawtext_4.py <project> sourcing <query> [--repeat| --stop]
+	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat | --stop]
 	crawtext_4.py (-h | --help)
   	crawtext_4.py --version
 
 Options:
 	--file Complete path of the sourcefile.
-	--key  Bing API Key for Search. 
+	--key  Bing API Key for Search.
+	--repeat Scheduled task for every monday @ 5:30
+	--stop Scheduled task 
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
@@ -34,7 +36,7 @@ from datetime import datetime
 import __future__
 from docopt import docopt
 from abpy import Filter
-
+from apscheduler.scheduler import Scheduler
 
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
@@ -305,21 +307,30 @@ class Crawler():
 					break
 		return True
 
-
-def main(docopt_args):
+def crawtext(docopt_args):
 	if docopt_args['discovery'] is True:
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
+		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
+		n.crawl()
 	elif docopt_args['sourcing'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
-	n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
-	n.crawl() 
-	return n
-	
+		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
+		n.crawl()
+	return True
+
 if __name__ == "__main__":
 	args = docopt(__doc__)
-	main(args)
-	
+	crawtext(args)
+	config = {'apscheduler.jobstores.file.class': 'apscheduler.jobstores.shelve_store:ShelveJobStore',
+          'apscheduler.jobstores.file.path': '/tmp/dbfile'}
+	sched = Scheduler(config)
+
+	if args['--repeat']:
+		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
+		sched.add_cron_job(n.crawl(), day_of_week='mon', hour=5, minute=30, jobstore=docopt_args['<project>'])
+	if args['--stop']:
+		remove_jobstore(docopt_args['<project>'], close=True)	
 	#print(docopt(__doc__, version='0.1'))
 	# liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
 	# query= "algues vertes OR algue verte"
@@ -328,3 +339,4 @@ if __name__ == "__main__":
 	# #Sourcing("db_test_crawtest_19")
 	# Crawler("db_test_crawtest_20", query)
 	
+
