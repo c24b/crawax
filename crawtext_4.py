@@ -3,8 +3,8 @@
 '''Crawtext.
 
 Usage:
-	crawtext_4.py <project> sourcing <query> [--repeat]
-	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
+	crawtext_4.py <project> crawl <query> [--repeat]
+	crawtext_4.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
 	crawtext_4.py <project> stop
 	crawtext_4.py <project> start
 	crawtext_4.py (-h | --help)
@@ -13,7 +13,7 @@ Usage:
 Options:
 	--file Complete path of the sourcefile.
 	--key  Bing API Key for Search.
-	--repeat Scheduled task for every monday @ 5:30
+	--repeat Scheduled task for every monday @ 5:30.
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
@@ -270,7 +270,8 @@ class Crawler():
 	def __init__(self,db_name, query):
 		'''the main consumer from queue insert into results or log'''
 		db = Database(db_name)
-		db.create_tables()
+		self.db_name = db_name
+		#db.create_tables()
 		# print db.queue.count()
 		self.db = db
 		self.query = query
@@ -302,19 +303,20 @@ class Crawler():
 					break
 			if self.db.queue.count() == 0:
 					break
+		print "crawl finished, results are stored in Mongo Database: %s" %self.db_name
 		return True
 
 	
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
-	if docopt_args['discovery'] is True:
+	if docopt_args['discover'] is True:
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
 		if docopt_args['--repeat']:
 			shedule()
-	elif docopt_args['sourcing'] is True:
+	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
@@ -323,6 +325,8 @@ def crawtext(docopt_args):
 		unschedule(docopt_args)
 	elif docopt_args['start']:
 		shedule()
+	else:
+		print "No arguments supplied"
 	return 
 
 if __name__ == "__main__":
