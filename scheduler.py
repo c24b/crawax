@@ -3,24 +3,27 @@
 
 from apscheduler.scheduler import Scheduler
 from apscheduler.jobstores.mongodb_store import MongoDBJobStore
-import time  
-from pymongo import MongoClient
+#from apscheduler.jobstores.mongodb import MongoDBJobStore
+import time, sys  
+import pymongo
+
 def schedule(docopt_args, job):
 	if docopt_args['--repeat'] or docopt_args['start']:
-		#mongo = pymongo.Connection(host='127.0.0.1', port=27017) 
-		client = MongoClient('mongodb://localhost,localhost:27017')
-		collection = client.jobs
-		store = MongoDBJobStore(connection=collection)  
+		# mongo = pymongo.Connection(host='127.0.0.1', port=27017)
+		# db = mongo[docopt_args['<project>']]
+		#store = MongoDBJobStore(database=db, collection=db.jobs, connection=mongo)
+		#store = MongoDBJobStore(connection=mongo, collection=collection)  
 		sched = Scheduler(daemonic = False)
-		sched.add_jobstore(store, 'mongo')
-		sched.add_cron_job(job, day_of_week='mon', hour=5, minute=30, jobstore=store)
-		shed.start()
+		#sched.add_jobstore(store, docopt_args['<project>'])
+		sched.add_cron_job(job, day_of_week='mon', hour=5, minute=30)
+		#sched.start()
+		sched.print_jobs()
 		print "Job %s is actually running every Monday @5:30" %docopt_args['<project>'] 
-		return
+		return sys.exit()
 
 def unschedule(docopt_args):
-	client = MongoClient('mongodb://localhost,localhost:27017')
-	collection = client.jobs
+	mongo = pymongo.Connection(host='127.0.0.1', port=27017)
+	collection = mongo.jobs
 	store = MongoDBJobStore(connection=collection)  
 	sched = Scheduler(daemonic = False)
 	#sched.shutdown(wait=True, shutdown_threadpool=True, close_jobstores=True)
