@@ -266,63 +266,58 @@ class Sourcing():
 			db.queue.insert(sources_queue)
 
 
-class Crawler():
-	def __init__(self,db_name, query):
-		'''the main consumer from queue insert into results or log'''
-		db = Database(db_name)
-		self.db_name = db_name
-		#db.create_tables()
-		# print db.queue.count()
-		self.db = db
-		self.query = query
-
-	def crawl(self):	
-		while self.db.queue.count > 0:
-			print "beginning crawl"
-			for n in self.db.queue.distinct("url"):	
-				if n not in self.db.results.distinct("url") or n not in self.db.log.distinct("url"):
-					p = Page(n, self.query)
-					if p.check() and p.request() and p.control() and p.extract():
-						self.db.results.insert(p.info)
-						if p.outlinks is not None:
-							try:
-								for url in p.outlinks:
-									if url not in self.db.queue.find({"url":url}) or url not in self.db.results.find({"url":url}) or url not in self.db.log.find({"url":url}):
-										self.db.queue.insert({"url":url})
-							except pymongo.errors:
-								self.db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False}))
-					else:
-						self.db.log.insert(p.bad_status())
-				self.db.queue.remove({"url": n})
-				# print "En traitement", self.db.queue.count()
-				# print "Resultats", self.db.results.count()
-				# print "Erreur", self.db.log.count()
-				if self.db.queue.count() == 0:
-					break
-			if self.db.queue.count() == 0:
-					break
-		print "crawl finished, results are stored in Mongo Database: %s" %self.db_name
-		return True
+def crawler(docopt_args):
+	db_name=docopt_args['<project>']
+	query=docopt_args['<query>']
+	'''the main consumer from queue insert into results or log'''
+	db = Database(db_name)
+	db.create_tables()
+	# print db.queue.count()
+	while db.queue.count > 0:
+		print "beginning crawl"
+		for n in db.queue.distinct("url"):	
+			if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
+				p = Page(n, query)
+				if p.check() and p.request() and p.control() and p.extract():
+					db.results.insert(p.info)
+					if p.outlinks is not None:
+						try:
+							for url in p.outlinks:
+								if url not in db.queue.find({"url":url}) or url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
+									db.queue.insert({"url":url})
+						except pymongo.errors:
+							db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False}))
+				else:
+					db.log.insert(p.bad_status())
+			db.queue.remove({"url": n})
+			# print "En traitement", self.db.queue.count()
+			# print "Resultats", self.db.results.count()
+			# print "Erreur", self.db.log.count()
+			if db.queue.count() == 0:
+				break
+		if db.queue.count() == 0:
+				break
+	print "crawl finished, results are stored in Mongo Database: %s" %db_name
 
 	
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
-	if docopt_args['discover'] is True:
+	if docopt_args['discover'] is True:	
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
-		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
-		n.crawl()
+		crawler(docopt_args)
 		if docopt_args['--repeat']:
-			schedule()
+			schedule(docopt_args, crawler(docopt_args))
 	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
-		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
-		n.crawl()
-		schedule(docopt_args) 
+		crawler(db_name=docopt_args['<project>'], query=docopt_args)
+		if docopt_args['--repeat']:
+			schedule(docopt_args, crawler(docopt_args)) 
 	elif docopt_args['stop']:
 		unschedule(docopt_args)
 	elif docopt_args['start']:
-		schedule(docopt_args)
+		Sourcing(db_name=docopt_args['<project>'])
+		schedule(docopt_args, crawler(docopt_args))
 	else:
 		print "No command supplied, please check command line usage and options."
 	return 
