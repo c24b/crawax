@@ -286,13 +286,11 @@ class Crawler():
 						self.db.results.insert(p.info)
 						if p.outlinks is not None:
 							try:
-								self.db.queue.insert([{"url":url} for url in p.outlinks 
-												if url not in self.db.queue.distinct("url") 
-												or url not in self.db.results.distinct("url") 
-												or url not in self.db.log.distinct("url")
-											])
+								for url in p.outlinks:
+									if url not in self.db.queue.find({"url":url}) or url not in self.db.results.find({"url":url}) or url not in self.db.log.find({"url":url}):
+										self.db.queue.insert({"url":url})
 							except pymongo.errors:
-								continue
+								self.db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False}))
 					else:
 						self.db.log.insert(p.bad_status())
 				self.db.queue.remove({"url": n})
