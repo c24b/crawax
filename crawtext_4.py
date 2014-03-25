@@ -6,7 +6,7 @@ Usage:
 	crawtext_4.py <project> sourcing <query> [--repeat]
 	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
 	crawtext_4.py <project> stop
-	crawtext_4.py <project> repeat
+	crawtext_4.py <project> start
 	crawtext_4.py (-h | --help)
   	crawtext_4.py --version
 
@@ -306,13 +306,14 @@ class Crawler():
 
 	
 def crawtext(docopt_args):
-	'''main crawtext'''
+	''' main crawtext run by command line option '''
 	if docopt_args['discovery'] is True:
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
-		shedule()
+		if docopt_args['--repeat']:
+			shedule()
 	elif docopt_args['sourcing'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
@@ -321,8 +322,6 @@ def crawtext(docopt_args):
 	elif docopt_args['stop']:
 		unschedule(docopt_args)
 	elif docopt_args['start']:
-		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
-		n.crawl()
 		shedule()
 	return 
 
