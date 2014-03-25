@@ -38,27 +38,10 @@ import __future__
 from docopt import docopt
 from abpy import Filter
 from scheduler import *
+from database import Database
+
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
 adblock = Filter(file('easylist.txt'))
-
-
-class Database(object):
-	'''Database creation''' 
-	def __init__(self, database_name):
-		self.name = database_name
-		client = MongoClient('mongodb://localhost,localhost:27017')
-		self.db = client[self.name]
-		#self.db.x = self.db[x]
-		
-	def __repr__(self, database_name):	
-		return self.name
-		
-	def create_tables(self):
-		self.results = self.db['results']
-		self.queue = self.db['queue'] 
-		self.log = self.db['log']
-		self.sources = self.db['sources']
-		return self
 			
 class Page(object):
 	'''Page factory'''
@@ -265,7 +248,6 @@ class Sourcing():
 		if len(sources_queue) != 0:
 			db.queue.insert(sources_queue)
 
-
 def crawler(docopt_args):
 	db_name=docopt_args['<project>']
 	query=docopt_args['<query>']
@@ -307,23 +289,27 @@ def crawtext(docopt_args):
 		Sourcing(db_name=docopt_args['<project>'])
 		crawler(docopt_args)
 		if docopt_args['--repeat']:
-			schedule(docopt_args, crawler(docopt_args))
+			schedule(crawler, docopt_args)
+			return sys.exit()
 	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
 		crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		if docopt_args['--repeat']:
-			schedule(docopt_args, crawler(docopt_args)) 
+			schedule(crawler, docopt_args)
+			return sys.exit()
 	elif docopt_args['stop']:
 		unschedule(docopt_args)
+		return sys.exit()
 	elif docopt_args['start']:
 		Sourcing(db_name=docopt_args['<project>'])
-		schedule(docopt_args, crawler(docopt_args))
+		schedule(crawler, docopt_args)
+		return sys.exit()
 	else:
 		print "No command supplied, please check command line usage and options."
-	return 
+		return sys.exit() 
 
 if __name__ == "__main__":
 	args = docopt(__doc__)
 	crawtext(args)
-	
+	sys.exit()
 
