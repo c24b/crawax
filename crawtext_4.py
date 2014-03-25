@@ -3,8 +3,10 @@
 '''Crawtext.
 
 Usage:
-	crawtext_4.py <project> sourcing <query> [--repeat| --stop]
-	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat | --stop]
+	crawtext_4.py <project> sourcing <query> [--repeat]
+	crawtext_4.py <project> discovery <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
+	crawtext_4.py <project> stop
+	crawtext_4.py <project> repeat
 	crawtext_4.py (-h | --help)
   	crawtext_4.py --version
 
@@ -12,7 +14,6 @@ Options:
 	--file Complete path of the sourcefile.
 	--key  Bing API Key for Search.
 	--repeat Scheduled task for every monday @ 5:30
-	--stop Scheduled task 
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
@@ -36,9 +37,7 @@ from datetime import datetime
 import __future__
 from docopt import docopt
 from abpy import Filter
-from apscheduler.scheduler import Scheduler
-
-
+from scheduler import *
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
 adblock = Filter(file('easylist.txt'))
 
@@ -73,7 +72,6 @@ class Page(object):
 
 	def check(self, url=None):
 		'''Bool: check the format of the next url compared to curr url'''
-		print self.url
 		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
 			self.error_type = "Url is empty"
 			return False
@@ -207,8 +205,7 @@ class Discovery():
 			if query is not None:
 				self.get_bing()
 		self.send_to_sources(db, query)
-		print "Il y a désormais %s sources dans la base de données" %db.sources.count()
-
+		
 	def send_to_sources(self, db, query):	
 		for n in self.seeds:
 			p = Page(n, query)
@@ -221,9 +218,9 @@ class Discovery():
 			else:
 				db.log.insert(p.bad_status())  
 		#Todo: integrate it into report				
-		print "Nb de sources", db.sources.count()
-		print "Nb urls en traitement", db.queue.count()
-		print "nb erreur", db.log.count()
+		# print "Nb de sources", db.sources.count()
+		# print "Nb urls en traitement", db.queue.count()
+		# print "nb erreur", db.log.count()
 		return db
 
 	def get_bing(self):
@@ -274,7 +271,7 @@ class Crawler():
 		'''the main consumer from queue insert into results or log'''
 		db = Database(db_name)
 		db.create_tables()
-		print db.queue.count()
+		# print db.queue.count()
 		self.db = db
 		self.query = query
 
@@ -298,45 +295,39 @@ class Crawler():
 					else:
 						self.db.log.insert(p.bad_status())
 				self.db.queue.remove({"url": n})
-				print "En traitement", self.db.queue.count()
-				print "Resultats", self.db.results.count()
-				print "Erreur", self.db.log.count()
+				# print "En traitement", self.db.queue.count()
+				# print "Resultats", self.db.results.count()
+				# print "Erreur", self.db.log.count()
 				if self.db.queue.count() == 0:
 					break
 			if self.db.queue.count() == 0:
 					break
 		return True
 
+	
 def crawtext(docopt_args):
+	'''main crawtext'''
 	if docopt_args['discovery'] is True:
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
+		shedule()
 	elif docopt_args['sourcing'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
-	return True
+		shedule() 
+	elif docopt_args['stop']:
+		unschedule(docopt_args)
+	elif docopt_args['start']:
+		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
+		n.crawl()
+		shedule()
+	return 
 
 if __name__ == "__main__":
 	args = docopt(__doc__)
 	crawtext(args)
-	config = {'apscheduler.jobstores.file.class': 'apscheduler.jobstores.shelve_store:ShelveJobStore',
-          'apscheduler.jobstores.file.path': '/tmp/dbfile'}
-	sched = Scheduler(config)
-	if args['--repeat']:
-		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
-		sched.add_cron_job(n.crawl(), day_of_week='mon', hour=5, minute=30, jobstore=docopt_args['<project>'])
-	if args['--stop']:
-		print sched.print_jobs()
-		remove_jobstore(docopt_args['<project>'], close=True)	
-	#print(docopt(__doc__, version='0.1'))
-	# liste = ["http://www.tourismebretagne.com/informations-pratiques/infos-environnement/algues-vertes"]
-	# query= "algues vertes OR algue verte"
-	# print "ok"
-	# InitSeeds(liste, "db_test_crawtest_20")
-	# #Sourcing("db_test_crawtest_19")
-	# Crawler("db_test_crawtest_20", query)
 	
 
