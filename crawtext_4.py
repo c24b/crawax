@@ -324,7 +324,7 @@ def crawtext(docopt_args):
 	elif docopt_args['start']:
 		schedule(docopt_args)
 	else:
-		print "No arguments supplied"
+		print "No command supplied, please check command line usage and options."
 	return 
 
 if __name__ == "__main__":
