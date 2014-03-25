@@ -313,16 +313,16 @@ def crawtext(docopt_args):
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
 		if docopt_args['--repeat']:
-			shedule()
+			schedule()
 	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
 		n = Crawler(db_name=docopt_args['<project>'], query=docopt_args)
 		n.crawl()
-		shedule() 
+		schedule(docopt_args) 
 	elif docopt_args['stop']:
 		unschedule(docopt_args)
 	elif docopt_args['start']:
-		shedule()
+		schedule(docopt_args)
 	else:
 		print "No arguments supplied"
 	return 
