@@ -37,7 +37,7 @@ from datetime import datetime
 import __future__
 from docopt import docopt
 from abpy import Filter
-from scheduler import *
+#from scheduler import *
 from database import Database
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
@@ -53,7 +53,7 @@ class Page(object):
 		self.info = {}
 		self.outlinks = None
 
-	def check(self, url=None):
+	def check(self):
 		'''Bool: check the format of the next url compared to curr url'''
 		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
 			self.error_type = "Url is empty"
@@ -92,6 +92,7 @@ class Page(object):
 	def control(self):
 		'''control the result of request return a boolean'''
 		#Content-type is not html 
+		
 		if 'text/html' not in self.req.headers['content-type']:
 			self.error_type="Content type is not TEXT/HTML"
 			return False
@@ -110,8 +111,10 @@ class Page(object):
 	def extract(self):
 		'''extract content and info of webpage return boolean and self.info'''
 		try:
+			#using Goose extractor
 			g = Goose()
 			article = g.extract(raw_html=self.src)
+			#filtering relevant webpages
 			if self.filter() is True:
 				self.outlinks = set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})])
 			self.info = {	
@@ -146,13 +149,16 @@ class Page(object):
 			 	
 		
 	def bad_status(self):
-		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}'''
-		try:
-			self.code = self.req.status_code
-		except AttributeError:
-			self.code = None
-		return {"url":self.url, "error_code": self.code, "type": self.error_type, "status": False}
-	
+		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False}'''
+		if self.req.status_code is not None and self.error_type is not None:
+			return {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
+		elif self.req is None and self.error_type is not None:
+			return {"url":self.url, "error_code": None, "type": self.error_type, "status": False}
+		elif self.req is not None and self.error_type is None:	
+			return {"url":self.url, "error_code": None, "type": self.req.status_code, "status": False}
+		else:
+			return {"url":self.url,"status": False}
+
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''
 		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
@@ -191,16 +197,21 @@ class Discovery():
 		
 	def send_to_sources(self, db, query):	
 		for n in self.seeds:
-			p = Page(n, query)
-			if p.check() and p.request() and p.control() and p.extract() and p.filter():
-				db.results.insert(p.info)
-				db.sources.insert({"url":p.info["url"], "crawl_date": datetime.today()})
-				# for url in p.outlinks:
-				# 	if url is not None or url not in db.queue.distinct("url") or url not in db.results.distinct("url") or url not in db.log.distinct("url"):
-				# 		db.queue.insert({"url":url})
-			else:
-				db.log.insert(p.bad_status())  
-		#Todo: integrate it into report				
+			#first send to queue
+			db.sources.insert({"url":n, "crawl_date": datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
+			# p = Page(n, query)
+			# if p.check() and p.request() and p.control() and p.extract() and p.filter():
+			# 	#send it to results
+			# 	if url not in db.results
+			# 	db.results.insert(p.info)
+			# 	#send next urls to queue
+			# 	for url in p.outlinks:
+			# 		if url is not None or url not in db.queue.distinct("url"):
+			# 			db.queue.insert({"url":url})
+			# else:
+			# 	#problematic sources are automatically sent to log
+			# 	db.log.insert(p.bad_status())  
+		#Todo: integrate it into mail report				
 		# print "Nb de sources", db.sources.count()
 		# print "Nb urls en traitement", db.queue.count()
 		# print "nb erreur", db.log.count()
@@ -239,16 +250,17 @@ class Discovery():
 			return False			
 
 class Sourcing():
-	'''method for inserting data in process queue'''
+	'''From an initial db sources send url to queue'''
 	def __init__(self,db_name):
 		'''simple producer : insert from sources database to processing queue'''
 		db = Database(db_name)
 		db.create_tables()
-		sources_queue = [{"url":url} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
+		sources_queue = [{"url":url, "date": datetime.today()} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
 		if len(sources_queue) != 0:
 			db.queue.insert(sources_queue)
 
 def crawler(docopt_args):
+	start = datetime.datetime.now()
 	db_name=docopt_args['<project>']
 	query=docopt_args['<query>']
 	'''the main consumer from queue insert into results or log'''
@@ -257,16 +269,19 @@ def crawler(docopt_args):
 	# print db.queue.count()
 	while db.queue.count > 0:
 		print "beginning crawl"
-		for n in db.queue.distinct("url"):	
-			if n not in db.results.distinct("url") or n not in db.log.distinct("url"):
+		print db.sources.count()
+		print db.queue.count()
+		for url in db.queue.distinct("url"):	
+			if url not in db.results.find({url:"url"}) or url not in db.log.find({url:"url"}):
 				p = Page(n, query)
 				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
 					if p.outlinks is not None:
 						try:
 							for url in p.outlinks:
-								if url not in db.queue.find({"url":url}) or url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
-									db.queue.insert({"url":url})
+								if url not in db.queue.find({"url":url}): 
+									if url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
+										db.queue.insert({"url":url})
 						except pymongo.errors:
 							db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False}))
 				else:
@@ -279,30 +294,34 @@ def crawler(docopt_args):
 				break
 		if db.queue.count() == 0:
 				break
-	print "crawl finished, results are stored in Mongo Database: %s" %db_name
+	end = datetime.datetime.now()
+	elapsed = end - start
+	print "crawl finished, %i results and %i sources are stored in Mongo Database: %s in %s" %(db.results.count(),db.sources.count(),db_name, timetuple(elapsed))
 
-	
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
 	if docopt_args['discover'] is True:	
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
 		crawler(docopt_args)
-		if docopt_args['--repeat']:
-			schedule(crawler, docopt_args)
-			return sys.exit()
+		# if docopt_args['--repeat']:
+		# 	schedule(crawler, docopt_args)
+		# 	return sys.exit()
 	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
-		crawler(db_name=docopt_args['<project>'], query=docopt_args)
-		if docopt_args['--repeat']:
-			schedule(crawler, docopt_args)
-			return sys.exit()
+		crawler(docopt_args)
+		# if docopt_args['--repeat']:
+			# schedule(crawler, docopt_args)
+			# return sys.exit()
 	elif docopt_args['stop']:
-		unschedule(docopt_args)
+		# unschedule(docopt_args)
+		print "Process is stopped"
 		return sys.exit()
 	elif docopt_args['start']:
+		Discovery(db_name=docopt_args['<project>'], query=docopt_args['<query>'], api_key="J8zQNrEwAJ2u3VcMykpouyPf4nvA6Wre1019v/dIT0o")
 		Sourcing(db_name=docopt_args['<project>'])
-		schedule(crawler, docopt_args)
+		print "DB Sources is created with a first search on BING based on your project name"
+		#schedule(crawler, docopt_args)
 		return sys.exit()
 	else:
 		print "No command supplied, please check command line usage and options."
