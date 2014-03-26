@@ -272,21 +272,21 @@ def crawler(docopt_args):
 		print db.sources.count()
 		print db.queue.count()
 		for url in db.queue.distinct("url"):	
-			if url not in db.results.find({url:"url"}) or url not in db.log.find({url:"url"}):
+			if url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
 				p = Page(n, query)
 				if p.check() and p.request() and p.control() and p.extract():
 					db.results.insert(p.info)
 					if p.outlinks is not None:
 						try:
-							for url in p.outlinks:
-								if url not in db.queue.find({"url":url}): 
-									if url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
-										db.queue.insert({"url":url})
+							for n_url in p.outlinks:
+								if n_url not in db.queue.find({"url":n_url}): 
+									if n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
+										db.queue.insert({"url":n_url})
 						except pymongo.errors:
 							db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False}))
 				else:
 					db.log.insert(p.bad_status())
-			db.queue.remove({"url": n})
+			db.queue.remove({"url": url})
 			# print "En traitement", self.db.queue.count()
 			# print "Resultats", self.db.results.count()
 			# print "Erreur", self.db.log.count()
