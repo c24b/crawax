@@ -5,8 +5,8 @@
 Usage:
 	crawtext_4.py <project> crawl <query> [--repeat]
 	crawtext_4.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
+	crawtext_4.py <project> start <query>
 	crawtext_4.py <project> stop
-	crawtext_4.py <project> start
 	crawtext_4.py (-h | --help)
   	crawtext_4.py --version
 
@@ -316,13 +316,14 @@ def crawtext(docopt_args):
 	elif docopt_args['stop']:
 		# unschedule(docopt_args)
 		print "Process is stopped"
-		return sys.exit()
+		return
 	elif docopt_args['start']:
+		'''Option Start here (and for the moment) is just a defaut activate of the crawl using defaut api key and basic query'''
 		Discovery(db_name=docopt_args['<project>'], query=docopt_args['<query>'], api_key="J8zQNrEwAJ2u3VcMykpouyPf4nvA6Wre1019v/dIT0o")
 		Sourcing(db_name=docopt_args['<project>'])
 		print "DB Sources is created with a first search on BING based on your project name"
 		#schedule(crawler, docopt_args)
-		return sys.exit()
+		return
 	else:
 		print "No command supplied, please check command line usage and options."
 		return sys.exit() 
