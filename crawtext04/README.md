@@ -17,17 +17,20 @@ You can install it using pip
 
     pip install crawtext
 *   Manual install
+
 1.	 Install Mongo 
-	sudo apt-get install mongo-db mongo-client mongo-server
+	"sudo apt-get install mongo-db mongo-client mongo-server"
 2. Install required libraries
-	pip install -r requirements.txt
-	setup_tools lxml (Problems with pip install version) if already a problem be sure to have libxslt installed (sudo apt-get install libxslt)
+	"pip install -r requirements.txt"
+	"setup_tools lxml" 
+(Problems with pip install version) if already a problem be sure to have libxslt installed (sudo apt-get install libxslt)
 
 3.	Install Goose extractor
-	git clone https://github.com/grangier/python-goose.git
-	cd python-goose
-	python setup.py install
 
+	"git clone https://github.com/grangier/python-goose.git"
+	"cd python-goose"
+	"python setup.py install"
+	
 Usage on Command Line
 ----
 	Usage:
