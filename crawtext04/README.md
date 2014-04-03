@@ -10,7 +10,7 @@ Simple command line interface to crawl the web
   *Discover new source and lauch crawler
 
 
-Instalation
+Installation
 ---
 *	PIP
 You can install it using pip
