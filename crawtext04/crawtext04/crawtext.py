@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__all__ = ['crawtext']
 '''Crawtext.
 
 Usage:
@@ -19,7 +18,9 @@ Options:
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
+#__all__ = ['crawtext']
 
+#from __future__ import print_function
 from os.path import exists
 import sys
 import requests
@@ -153,6 +154,7 @@ class Page(object):
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False}'''
 		try:
+			assert(self.req) 
 			if self.req.status_code is not None and self.error_type is not None:
 				return {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
 			elif self.req is None and self.error_type is not None:
@@ -161,8 +163,7 @@ class Page(object):
 				return {"url":self.url, "error_code": None, "type": self.req.status_code, "status": False}
 			else:
 				return {"url":self.url,"status": False}
-		except Exception, e:
-			print e
+		except Exception:
 			return {"url":self.url, "error_code": "Request Error", "type": self.error_type, "status": False}
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''
