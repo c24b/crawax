@@ -6,28 +6,32 @@ USING CRAWTEXT
 Here explanation of the crawtext
 Simple command line interface to crawl the web
 2 modes:
-  *Crawl with an existing database
-  *Discover new source and lauch crawler
+  *	Crawl with an existing database
+  *	Discover new source and lauch crawler
 
 
-Instalation
+Installation
 ---
 *	PIP
 You can install it using pip
 
     pip install crawtext
 *   Manual install
-1.	 Install Mongo 
-   sudo apt-get install mongo-db mongo-client mongo-server
-2. Install required libraries
-   	   pip install -r requirements.txt
-   	   setup_tools lxml (Problems with pip install version)
-3. Install Goose extractor
-      git clone https://github.com/grangier/python-goose.git
-      cd python-goose
-      python setup.py install
 
-Usage Example
+1.	 Install Mongo 
+	"sudo apt-get install mongo-db mongo-client mongo-server"
+2. Install required libraries
+	"pip install -r requirements.txt"
+	"setup_tools lxml" 
+(Problems with pip install version) if already a problem be sure to have libxslt installed (sudo apt-get install libxslt)
+
+3.	Install Goose extractor
+
+	"git clone https://github.com/grangier/python-goose.git"
+	"cd python-goose"
+	"python setup.py install"
+	
+Usage on Command Line
 ----
 	Usage:
 		crawtext.py <project> crawl <query> [--repeat]
@@ -37,7 +41,7 @@ Usage Example
       	 	crawtext.py (-h | --help)
       	 	crawtext.py --version
 
-		Options:
+	Options:
 			--file Complete path of the sourcefile.
 			--key  Bing API Key for Search.
 			--repeat Scheduled task for every monday @ 5:30.
