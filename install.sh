@@ -25,9 +25,9 @@ fi
 export VIRTUAL_ENV="$PWD"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 #Specific installations for crawtext
-pip install -r "$VIRTUAL_ENV/requirements.txt" &> install.log
+pip install -r "$VIRTUAL_ENV/requirements.txt"
 # Some problems observed with the pip version of lxml
-easy_install lxml&>install.log
+easy_install lxml
 #Installing python-goose from github
 git clone https://github.com/grangier/python-goose.git
 cd python-goose
@@ -40,4 +40,4 @@ $VIRTUAL_ENV/bin/python crawtext.py -h
 #Desactivate
 unset PYTHON_HOME
 exec "${@:-$SHELL}"
-echo "Virtual env installation successfull. Please run source/bin activate BEFORE running script"
+echo "Virtual env installation successfull. Please run source/bin activate BEFORE running the crawtext script"

@@ -75,6 +75,7 @@ class Page(object):
 			headers = {'User-Agent': choice(user_agents),}
 			proxies = {"https":"77.120.126.35:3128", "https":'88.165.134.24:3128', }
 			self.req = requests.get((self.url), headers = headers,allow_redirects=True, proxies=proxies, timeout=5)
+			
 			try:
 				self.src = self.req.text
 				return True	
@@ -87,6 +88,7 @@ class Page(object):
 		
 		except requests.exceptions.MissingSchema:
 			self.error_type = "Incorrect url %s" %self.url
+			print self.error_type
 			return False
 		except Exception as e:
 			self.error_type = str(e)
@@ -154,7 +156,7 @@ class Page(object):
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False}'''
 		try:
-			assert(self.req) 
+			print self.req_status_code, self.error_type
 			if self.req.status_code is not None and self.error_type is not None:
 				return {"url":self.url, "error_code": self.req.status_code, "type": self.error_type, "status": False}
 			elif self.req is None and self.error_type is not None:
@@ -164,7 +166,10 @@ class Page(object):
 			else:
 				return {"url":self.url,"status": False}
 		except Exception:
-			return {"url":self.url, "error_code": "Request Error", "type": self.error_type, "status": False}
+			try:
+				return {"url":self.url, "error_code": str(self.req), "type": self.error_type, "status": False}
+			except:
+				return {"url":self.url, "error_code": "No request answer", "type": self.error_type, "status": False}
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''
 		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
@@ -197,7 +202,7 @@ class Discovery():
 		if query is not None:
 			if self.path is not None:
 				self.get_local()
-			if query is not None:
+			if query is not None and api_key is not None:
 				self.get_bing()
 		self.send_to_sources(db, query)
 		self.send_to_queue(db)
@@ -250,7 +255,7 @@ class Discovery():
 			return True
 		except:
 
-			self.error_type = "Error fetching results from BING API, check your credentials. May exceed the 5000req/month limit "
+			self.error_type = "Error fetching results from BING API, check your credentials. May not exceed the 5000req/month limit "
 			print self.error_type
 			return False
 
@@ -264,6 +269,7 @@ class Discovery():
 			return True
 		except:
 			self.error_type = "Error fetching results from file %s. Check if file exists" %self.path
+			print self.error_type
 			return False			
 
 class Sourcing():
@@ -283,11 +289,10 @@ def crawler(docopt_args):
 	'''the main consumer from queue insert into results or log'''
 	db = Database(db_name)
 	db.create_tables()
-	print db.queue.count()
 	while db.queue.count > 0:
 		print "beginning crawl"
-		print db.sources.count()
-		print db.queue.count()
+		print "Nombre de sources dans la base", db.sources.count()
+		print "Nombre d'url à traiter", db.queue.count()
 		for url in db.queue.distinct("url"):	
 			if url not in db.results.find({"url":url}) or url not in db.log.find({"url":url}):
 				p = Page(url, query)
