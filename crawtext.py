@@ -233,7 +233,7 @@ class Discovery():
 				'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
 				params={
 					'$format' : 'json',
-					'$top' : 50,
+					'$top' : 100,
 					'Query' : '\'%s\'' % self.query,
 				},
 				auth=(self.key, self.key)
@@ -316,13 +316,15 @@ def crawtext(docopt_args):
 		print "discovery"
 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 		Sourcing(db_name=docopt_args['<project>'])
-		crawler(docopt_args)
+		return "Discovery completed"
+		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 		# 	schedule(crawler, docopt_args)
 		# 	return sys.exit()
 	elif docopt_args['crawl'] is True:
 		Sourcing(db_name=docopt_args['<project>'])
-		crawler(docopt_args)
+		return "Sourcing completed"
+		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 			# schedule(crawler, docopt_args)
 			# return sys.exit()
@@ -336,7 +338,7 @@ def crawtext(docopt_args):
 		Sourcing(db_name=docopt_args['<project>'])
 		print "DB Sources is created with a first search on BING based on your project name"
 		#schedule(crawler, docopt_args)
-		return
+		return 
 	else:
 		print "No command supplied, please check command line usage and options."
 		return sys.exit() 
