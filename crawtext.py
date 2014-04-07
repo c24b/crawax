@@ -13,7 +13,7 @@ Usage:
 
 Options:
 	--file Complete path of the sourcefile.
-	--key  Bing API Key for Search.
+	--key  Bing API Key for SearchNY.
 	--repeat Scheduled task for every monday @ 5:30. (Not Implemented yet)
 	-h --help Show usage and Options.
 	--version Show versions.  
@@ -130,6 +130,7 @@ class Page(object):
 						"texte": article.cleaned_text,
 						"title": article.title,
 						"meta_description":bs(article.meta_description).text
+						"date": [self.crawl_date]
 						}
 			return self.info
 		except Exception, e:
@@ -209,21 +210,10 @@ class Discovery():
 
 	def send_to_sources(self, db, query):	
 		for n in self.seeds:
-			#first send to queue
-			db.sources.insert({"url":n, "crawl_date": datetime.datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
-
-			# p = Page(n, query)
-			# if p.check() and p.request() and p.control() and p.extract() and p.filter():
-			# 	#send it to results
-			# 	if url not in db.results
-			# 	db.results.insert(p.info)
-			# 	#send next urls to queue
-			# 	for url in p.outlinks:
-			# 		if url is not None or url not in db.queue.distinct("url"):
-			# 			db.queue.insert({"url":url})
-			# else:
-			# 	#problematic sources are automatically sent to log
-			# 	db.log.insert(p.bad_status())  
+			#first send to sources
+			#db.sources.insert({"url":n, "date": datetime.datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
+			db.sources.update({"url":n, "date": datetime.datetime.today(), "mode":"discovery"}, upsert=True)
+			
 		#Todo: integrate it into mail report				
 		# print "Nb de sources", db.sources.count()
 		# print "Nb urls en traitement", db.queue.count()
@@ -231,7 +221,7 @@ class Discovery():
 		return db
 
 	def send_to_queue(self, db):
-		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
+		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in db.sources.distinct("url")]
 		if len(sources_queue) != 0:
 			db.queue.insert(sources_queue)
 		return db
