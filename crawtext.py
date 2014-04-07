@@ -4,12 +4,12 @@
 '''Crawtext.
 
 Usage:
-	crawtext_4.py <project> crawl <query> [--repeat]
-	crawtext_4.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
-	crawtext_4.py <project> start <query>
-	crawtext_4.py <project> stop
-	crawtext_4.py (-h | --help)
-  	crawtext_4.py --version
+	crawtext.py <project> crawl <query> [--repeat]
+	crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
+	crawtext.py <project> start <query>
+	crawtext.py <project> stop
+	crawtext.py (-h | --help)
+  	crawtext.py --version
 
 Options:
 	--file Complete path of the sourcefile.
