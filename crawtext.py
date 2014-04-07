@@ -6,15 +6,15 @@
 Usage:
 	crawtext.py <project> crawl <query> [--repeat]
 	crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
-	crawtext.py <project> start <query>
-	crawtext.py <project> stop
+	crawtext.py <project> start <query> (Not Implemented yet)
+	crawtext.py <project> stop (Not Implemented yet)
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
 Options:
 	--file Complete path of the sourcefile.
 	--key  Bing API Key for Search.
-	--repeat Scheduled task for every monday @ 5:30.
+	--repeat Scheduled task for every monday @ 5:30. (Not Implemented yet)
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
