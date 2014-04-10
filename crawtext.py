@@ -129,7 +129,7 @@ class Page(object):
 						"backlinks":[n for n in self.outlinks if n == self.url],
 						"texte": article.cleaned_text,
 						"title": article.title,
-						"meta_description":bs(article.meta_description).text
+						"meta_description":bs(article.meta_description).text,
 						"date": [self.crawl_date]
 						}
 			return self.info
@@ -200,7 +200,8 @@ class Discovery():
 		self.seeds = []
 		self.path = path
 		self.key = api_key
-		if query is not None:
+		self.query = query
+		if self.query is not None:
 			if self.path is not None:
 				self.get_local()
 			if query is not None and api_key is not None:
@@ -212,7 +213,7 @@ class Discovery():
 		for n in self.seeds:
 			#first send to sources
 			#db.sources.insert({"url":n, "date": datetime.datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
-			db.sources.update({"url":n, "date": datetime.datetime.today(), "mode":"discovery"}, upsert=True)
+			db.sources.update({"url":n, "mode":"discovery"}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
 			
 		#Todo: integrate it into mail report				
 		# print "Nb de sources", db.sources.count()
@@ -221,15 +222,15 @@ class Discovery():
 		return db
 
 	def send_to_queue(self, db):
-		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in db.sources.distinct("url")]
+		sources_queue = [{"url":url} for url in db.sources.distinct("url")]
 		if len(sources_queue) != 0:
+			#db.sources.update([{"url":n}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
 			db.queue.insert(sources_queue)
 		return db
 	def get_bing(self):
 		''' Method to extract results from BING API (Limited to 5000 req/month). ''' 
 		print "Searching on Bing"
-		try:
-			r = requests.get(
+		r = requests.get(
 				'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
 				params={
 					'$format' : 'json',
@@ -238,16 +239,17 @@ class Discovery():
 				},
 				auth=(self.key, self.key)
 				)
-			for e in r.json()['d']['results']:
-				self.seeds.append(e['Url']) 
-			self.seeds = list(set(self.seeds))
-			print len(self.seeds), results
-			return True
-		except:
+		print r
+		for e in r.json()['d']['results']:
+			print e['Url'] 
+			self.seeds.append(e['Url']) 
+		self.seeds = list(set(self.seeds))
+		return True
+		# except:
 
-			self.error_type = "Error fetching results from BING API, check your credentials. May not exceed the 5000req/month limit "
-			print self.error_type
-			return False
+		# 	self.error_type = "Error fetching results from BING API, check your credentials. May not exceed the 5000req/month limit "
+		# 	print self.error_type
+		# 	return False
 
 	def get_local(self):
 		''' Method to extract url list from text file'''
@@ -313,10 +315,15 @@ def crawler(docopt_args):
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
 	if docopt_args['discover'] is True:
-		print "discovery"
-		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
-		Sourcing(db_name=docopt_args['<project>'])
-		return "Discovery completed"
+		print "Running discovery mode ..."
+		if docopt_args['<query>'] is not None:
+			Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
+			Sourcing(db_name=docopt_args['<project>'])
+			return "Discovery completed"
+		else:
+			print "Discovery mode needs a query to search. Please check your arguments and try again"
+			print docopt_args['help']
+			return False
 		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 		# 	schedule(crawler, docopt_args)
