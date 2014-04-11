@@ -80,7 +80,7 @@ class Page(object):
 				try:
 					
 					self.src = self.req.text
-					return True	
+					return True
 				except Exception, e:
 					
 					self.error_type = "Request answer was not understood %s" %e
@@ -125,6 +125,7 @@ class Page(object):
 			#~ return False
 		else:
 			self.status_code = 200
+			self.error_type= "Ok"
 			return True	
 	
 	def extract(self):
@@ -179,7 +180,6 @@ class Page(object):
 			 	
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''
-		
 		return {"url":self.url, "error_code": self.status_code, "type": self.error_type, "status": False,"date":self.crawl_date}
 			
 			# try:
@@ -277,7 +277,7 @@ class Discovery():
 				self.seeds.append(url) 
 			self.seeds = list(set(self.seeds))
 			return True
-		except:
+		except Exception:
 			self.status_code = -1
 			self.error_type = "Error fetching results from file %s. Check if file exists" %self.path
 			print self.error_type
