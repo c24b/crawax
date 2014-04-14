@@ -51,10 +51,10 @@ class Page(object):
 		self.status = None
 		self.error_type = "Ok"
 		self.info = {}
-		self.outlinks = set()
 		self.crawl_date = datetime.datetime.now()
 		self.req = None
 		self.src = ""
+		self.status_code = 0
 		print self.query
 	def check(self):
 		'''Bool: check the format of the next url compared to curr url'''
@@ -109,29 +109,30 @@ class Page(object):
 		'''Bool control the result if text/html or if content available'''
 		#Content-type is not html 
 		try:
+			self.req.headers['content-type']
 			if 'text/html' not in self.req.headers['content-type']:
 				self.error_type="Content type is not TEXT/HTML"
 				self.status_code = 404
 				return False
+			#Error on ressource or on server
+			elif self.req.status_code in range(400,520):
+				self.status_code = self.req.status_code
+				self.error_type="Connexion error"
+				return False
+			#Redirect
+			#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
+				#~ self.error_type="Redirection"
+				#~ self.bad_status()
+				#~ return False
+			else:
+				self.status_code = 200
+				self.error_type= "Ok"
+				return True	
 		except Exception:
 			self.error_type="Request headers are not found"
-				self.status_code = 404
-				return False		
-		#Error on ressource or on server
-		elif self.req.status_code in range(400,520):
-			self.status_code = self.req.status_code
-			self.error_type="Connexion error"
-			return False
-		#Redirect
-		#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
-			#~ self.error_type="Redirection"
-			#~ self.bad_status()
-			#~ return False
-		else:
-			self.status_code = 200
-			self.error_type= "Ok"
-			return True	
-	
+			self.status_code = 404
+			return False		
+		
 	def extract(self):
 		'''Dict extract content and info of webpage return boolean and self.info'''
 		
@@ -359,16 +360,17 @@ def crawtext(docopt_args):
 		# 	schedule(crawler, docopt_args)
 		# 	return sys.exit()
 	elif docopt_args['crawl'] is True:
-		Sourcing(db_name=docopt_args['<project>'])
+		s = Sourcing(db_name=docopt_args['<project>'])
 		crawler(docopt_args)
-		self.db.queue.drop()
+		s.db.queue.drop()
 		return "Sourcing completed"
 		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 			# schedule(crawler, docopt_args)
 			# return sys.exit()
 	elif docopt_args['stop']:
-		self.db.queue.drop()
+		raise NotImplementedError
+		#s.db.queue.drop()
 		# unschedule(docopt_args)
 		print "Process is stopped"
 		return
