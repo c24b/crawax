@@ -108,11 +108,15 @@ class Page(object):
 	def control(self):
 		'''Bool control the result if text/html or if content available'''
 		#Content-type is not html 
-		
-		if 'text/html' not in self.req.headers['content-type']:
-			self.error_type="Content type is not TEXT/HTML"
-			self.status_code = -1
-			return False
+		try:
+			if 'text/html' not in self.req.headers['content-type']:
+				self.error_type="Content type is not TEXT/HTML"
+				self.status_code = 404
+				return False
+		except Exception:
+			self.error_type="Request headers are not found"
+				self.status_code = 404
+				return False		
 		#Error on ressource or on server
 		elif self.req.status_code in range(400,520):
 			self.status_code = self.req.status_code
