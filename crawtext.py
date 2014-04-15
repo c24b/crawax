@@ -6,7 +6,7 @@
 Usage:
 	crawtext.py <project> crawl <query> [--repeat]
 	crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
-	crawtext.py <project> start <query>
+	crawtext.py <project> restart 
 	crawtext.py <project> stop
 	crawtext.py (-h | --help)
   	crawtext.py --version
@@ -363,24 +363,28 @@ def crawtext(docopt_args):
 	elif docopt_args['crawl'] is True:
 		s = Sourcing(db_name=docopt_args['<project>'])
 		crawler(docopt_args)
-		s.db.queue.drop()
 		return "Sourcing completed"
 		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 			# schedule(crawler, docopt_args)
 			# return sys.exit()
 	elif docopt_args['stop']:
-		s = Sourcing(db_name=docopt_args['<project>'])
-		s.db.queue.drop()
-		#s.db.queue.drop()
+		db = Database(docopt_args['<project>'])
+		db.queue.drop()
 		# unschedule(docopt_args)
-		print "Process is stopped"
-		print s.db.stats()
+		print "Current queue empty. Process is stopped"
+		print db.stats()
 		return
-	elif docopt_args['start']:
-		'''Option Start here (and for the moment) is just restarting the queue of url'''
-		crawler(docopt_args)
-		print s.db.report()
+	elif docopt_args['restart']:
+		'''Option restart restarting the current queue without adding to sources'''
+		db = Database(docopt_args['<project>'])
+		
+		if db.queue.count() <=0:
+			print "No data in current queue. Process can't be restarted. Please use crawl or discovery mode"
+			print db.stats()
+			return
+		else:
+			crawler(docopt_args)
 		#schedule(crawler, docopt_args)
 		return 
 	else:
