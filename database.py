@@ -26,3 +26,14 @@ class Database(object):
 	def create_table(self, name):
 		self.name= self.db[name]
 		return self.db[name]
+	
+	def report(self):
+		#database finale
+		res = "<li>Nombre de resultats dans la base: %d</li>" % (self.db.results.count())
+		sources = "<li>Nombre de sources: %d</li>" % len(self.db.sources.distinct('url')) 
+		url = "<li>urls en cours de traitement: %d\n</li>" % (self.db.queue.count())
+		url2 = "<li>urls traitees: %d</li>" % (self.db.results.count()+ self.db.log.count())
+		size = "<li>Size of the database %s: %d MB</li>" % (self.name, (self.db.command('dbStats', 1024)['storageSize'])/1024/1024.)
+		result = [res, sources, url, url2, size]
+		return "".join(result)
+	
