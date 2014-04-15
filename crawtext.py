@@ -6,8 +6,8 @@
 Usage:
 	crawtext.py <project> crawl <query> [--repeat]
 	crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [--repeat]
-	crawtext.py <project> start <query> (Not Implemented yet)
-	crawtext.py <project> stop (Not Implemented yet)
+	crawtext.py <project> start <query>
+	crawtext.py <project> stop
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
@@ -38,6 +38,7 @@ import __future__
 from docopt import docopt
 from abpy import Filter
 from database import Database
+
 #from scheduler import *
 
 unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
@@ -218,8 +219,8 @@ class Discovery():
 	'''special method to produces seeds url and send it to sources'''
 	def __init__(self, db_name, query, path=None, api_key=None):
 		#constitution de la base
-		db = Database(db_name)
-		db.create_tables()
+		self.db = Database(db_name)
+		self.db.create_tables()
 		self.seeds = []
 		self.path = path
 		self.key = api_key
@@ -229,8 +230,8 @@ class Discovery():
 				self.get_local()
 			if query is not None and api_key is not None:
 				self.get_bing()
-		self.send_to_sources(db, query)
-		self.send_to_queue(db)
+		self.send_to_sources(self.db, query)
+		self.send_to_queue(self.db)
 
 	def send_to_sources(self, db, query):	
 		for n in self.seeds:
@@ -292,11 +293,11 @@ class Sourcing():
 	'''From an initial db sources send url to queue'''
 	def __init__(self,db_name):
 		'''simple producer : insert from sources database to processing queue'''
-		db = Database(db_name)
-		db.create_tables()
-		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in db.sources.distinct("url") if url not in db.queue.distinct("url")]
+		self.db = Database(db_name)
+		self.db.create_tables()
+		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in self.db.sources.distinct("url") if url not in self.db.queue.distinct("url")]
 		if len(sources_queue) != 0:
-			db.queue.insert(sources_queue)
+			self.db.queue.insert(sources_queue)
 
 def crawler(docopt_args):
 	start = datetime.datetime.now()
@@ -371,14 +372,15 @@ def crawtext(docopt_args):
 	elif docopt_args['stop']:
 		s = Sourcing(db_name=docopt_args['<project>'])
 		s.db.queue.drop()
-		return "Stoping current crawl"
 		#s.db.queue.drop()
 		# unschedule(docopt_args)
 		print "Process is stopped"
+		print s.db.stats()
 		return
 	elif docopt_args['start']:
 		'''Option Start here (and for the moment) is just restarting the queue of url'''
 		crawler(docopt_args)
+		print s.db.report()
 		#schedule(crawler, docopt_args)
 		return 
 	else:
