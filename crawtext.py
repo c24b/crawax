@@ -369,7 +369,9 @@ def crawtext(docopt_args):
 			# schedule(crawler, docopt_args)
 			# return sys.exit()
 	elif docopt_args['stop']:
-		raise NotImplementedError
+		s = Sourcing(db_name=docopt_args['<project>'])
+		s.db.queue.drop()
+		return "Stoping current crawl"
 		#s.db.queue.drop()
 		# unschedule(docopt_args)
 		print "Process is stopped"
