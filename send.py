@@ -8,10 +8,6 @@ import mimetools
 import cStringIO
 from time import gmtime, strftime
 import smtplib
-
-
-import pymongo
-from pymongo import MongoClient
 from database import Database
 from cfg import username, password
 
@@ -45,8 +41,7 @@ class Report():
 		# message body
 		#
 		
-		writer.addheader("From", (self.fromEmail).encode("utf-8"))
-		print self.fromEmail
+		writer.addheader("From", self.fromEmail)
 		writer.addheader("Subject", (self.title).encode("utf-8"))
 		writer.addheader("MIME-Version", "1.0")
 		#
@@ -98,11 +93,11 @@ class Report():
 			server.login(username,password)
 			server.sendmail(self.fromEmail, n, self.msg)
 			server.quit()
-		print 'Msg Sent Sucessfully'
+		print 'Msg Sent Sucessfully!'
 		return True
 
 if __name__ == '__main__':
 	#For test
-	Report("jp", fromEmail="constance@cortext.fr", toEmails=["4barbes@gmail.com", "constance@cortext.fr"])
+	#Report("jp", fromEmail="constance@cortext.fr", toEmails=["4barbes@gmail.com", "constance@cortext.fr"])
 
 	
