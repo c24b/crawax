@@ -45,7 +45,6 @@ def crawler(docopt_args):
 	'''the main consumer from queue insert into results or log'''
 	db = Database(db_name)
 	db.create_tables()
-	schedule(send_report, docopt_args)
 	while db.queue.count > 0:
 
 		print "beginning crawl"
@@ -57,7 +56,8 @@ def crawler(docopt_args):
 				
 				if p.check() and p.request() and p.control() and p.extract():
 					#print "Links", p.outlinks
-					db.results.insert(p.info)
+					db.results.update(p.info, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
+					#db.results.insert(p.info)
 					if p.outlinks is not None:
 						try:
 							for n_url in p.outlinks:
