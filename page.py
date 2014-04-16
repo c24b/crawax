@@ -165,9 +165,9 @@ class Page():
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''			
 		try:
-		 	return {"url":self.url, "error_code": str(self.req), "type": self.error_type, "status": False, "date":[self.crawl_date]}
+		 	return {"url":self.url, "query": self.query, "error_code": str(self.req), "type": self.error_type, "status": False, "date":[self.crawl_date]}
 		except:
-		 	return {"url":self.url, "error_code": "No request answer", "type": self.error_type, "status": False, "date":[self.crawl_date]}
+		 	return {"url":self.url, "query": self.query, "error_code": "No request answer", "type": self.error_type, "status": False, "date":[self.crawl_date]}
 	
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''

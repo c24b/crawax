@@ -62,11 +62,12 @@ def crawler(docopt_args):
 						try:
 							for n_url in p.outlinks:
 								if n_url not in db.queue.find({"url":n_url}) or n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
-									next_p = Page(n_url, query)
-									if next_p.clean_url(p.url) is not None:
-										db.queue.insert({"url":n_url})
+									# Checking correct url before is problematic
+									# next_p = Page(n_url, query)
+									# if next_p.clean_url(p.url) is not None:
+									db.queue.insert({"url":n_url})
 						except mongo_err:
-							db.log.udpate({"url":url, "error_type": "pymongo error inserting outlinks", "status":False},{'$push': {"date": datetime.datetime.today()}}, upsert=True)
+							db.log.udpate({"url":url, "error_type": "pymongo error inserting outlinks", "query": self.query, "status":False},{'$push': {"date": datetime.datetime.today()}}, upsert=True)
 				elif p.error_type != 0:
 					''' if the page is not relevant do not store in db'''
 					db.log.update(p.bad_status(),{'$push': {"date": datetime.datetime.today()}}, upsert=True)
@@ -101,7 +102,7 @@ def crawtext(docopt_args):
 			Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 			Sourcing(db_name=docopt_args['<project>'])
 			crawler(docopt_args)
-			self.db.queue.drop()
+			#s.db.queue.drop()
 			return "Discovery completed"
 		else:
 			print "Discovery mode needs a query to search. Please check your arguments and try again"
