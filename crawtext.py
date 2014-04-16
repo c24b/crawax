@@ -66,10 +66,10 @@ def crawler(docopt_args):
 									if next_p.clean_url(p.url) is not None:
 										db.queue.insert({"url":n_url})
 						except mongo_err:
-							db.log.insert(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False},{'$push': {"date": datetime.datetime.today()}}, upsert=True)
+							db.log.udpate(({"url":url, "error_type": "pymongo error inserting outlinks", "status":False},{'$push': {"date": datetime.datetime.today()}}, upsert=True)
 				elif p.error_type != 0:
 					''' if the page is not relevant do not store in db'''
-					db.log.insert(p.bad_status(),{'$push': {"date": datetime.datetime.today()}}, upsert=True)
+					db.log.update(p.bad_status(),{'$push': {"date": datetime.datetime.today()}}, upsert=True)
 				else:
 					continue
 
