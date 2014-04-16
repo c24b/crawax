@@ -36,8 +36,7 @@ from database import Database
 from page import Page
 from crawtext_options import Discovery, Sourcing
 from report import Report, send_report
-from scheduler import *
-#from dateutil.rrule import rrule, DAILY
+from pymongo import errors as mongo_err
 
 def crawler(docopt_args):
 	start = datetime.datetime.now()
@@ -80,7 +79,7 @@ def crawler(docopt_args):
 			# print "Erreur", self.db.log.count()
 			if db.queue.count() == 0:
 				print db.stats()
-				unschedule(send_report, docopt_args)
+				#unschedule(send_report, docopt_args)
 				break
 			
 		if db.queue.count() == 0:
@@ -92,6 +91,7 @@ def crawler(docopt_args):
 	end = datetime.datetime.now()
 	elapsed = end - start
 	print "crawl finished, %i results and %i sources are stored in Mongo Database: %s in %s" %(db.results.count(),db.sources.count(),db_name, elapsed)
+	return 
 
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
