@@ -84,7 +84,7 @@ def crawler(docopt_args):
 			
 		if db.queue.count() == 0:
 			print db.stats()
-			unschedule(send_report, docopt_args)
+			#unschedule(send_report, docopt_args)
 			break
 		
 
