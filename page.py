@@ -34,7 +34,6 @@ class Page():
 		self.src = ""
 		self.status_code = 0
 		
-	
 	def check(self):
 		'''Bool: check the format of the next url compared to curr url'''
 		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
@@ -127,6 +126,7 @@ class Page():
 				#print self.outlinks
 				self.info = {	
 								"url":self.url,
+								"query": self.query,
 								"domain": get_tld(self.url),
 								"outlinks": list(self.outlinks),
 								"backlinks":[n for n in self.outlinks if n == self.url],
@@ -163,13 +163,11 @@ class Page():
 			return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 			 	
 	def bad_status(self):
-		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''
-		return {"url":self.url, "error_code": self.status_code, "type": self.error_type, "status": False,"date":self.crawl_date}
-			
-			# try:
-			# 	return {"url":self.url, "error_code": str(self.req), "type": self.error_type, "status": False, "date":self.crawl_date}
-			# except:
-			# 	return {"url":self.url, "error_code": "No request answer", "type": self.error_type, "status": False, "date":self.crawl_date}
+		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''			
+		try:
+		 	return {"url":self.url, "error_code": str(self.req), "type": self.error_type, "status": False, "date":[self.crawl_date]}
+		except:
+		 	return {"url":self.url, "error_code": "No request answer", "type": self.error_type, "status": False, "date":[self.crawl_date]}
 	
 	def clean_url(self, url):
 		''' utility to normalize url and discard unwanted extension : return a url or None'''
