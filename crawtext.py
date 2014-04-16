@@ -107,7 +107,7 @@ def crawtext(docopt_args):
 			print "Discovery mode needs a query to search. Please check your arguments and try again"
 			print docopt_args['help']
 			return False
-		#crawler(docopt_args)
+		#Scheduler using UNIX COMMAND
 		# if docopt_args['--repeat']:
 		# 	schedule(crawler, docopt_args)
 		# 	return sys.exit()
