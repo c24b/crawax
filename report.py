@@ -112,7 +112,10 @@ class Report():
 		self.msg.attach(attachment)
 		raise NotImplementedError
 
+def send_report(docopt_args):
+	Report(docopt_args)
+	return	
+
 #if __name__ == '__main__':
 	#r = Report("jp", fromEmail="constance@cortext.fr", toEmails=["4barbes@gmail.com", "constance@cortext.fr"])
-	
 	
