@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from database import Database
 import datetime
+import requests
 
 class Discovery():
 	'''special method to produces seeds url and send it to sources'''
