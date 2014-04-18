@@ -62,25 +62,25 @@ class Page():
 				except Exception, e:
 					
 					self.error_type = "Request answer was not understood %s" %e
-					self.status_code = -1
+					self.status_code = 400
 					return False
 				else:
 					self.error_type = "Not relevant"
-					self.status_code = 200
+					self.status_code = 0
 					return False
 			except Exception, e:
 				#print "Error requesting the url", e
 				self.error_type = "Request answer was not understood %s" %e
-				self.status_code = -1
+				self.status_code = 400
 				return False
 		except requests.exceptions.MissingSchema:
 			self.error_type = "Incorrect url - Missing sheme for : %s" %self.url
-			self.status_code = 404
+			self.status_code = 406
 			
 			return False
 		except Exception as e:
 			self.error_type = "Another wired exception", e
-			self.status_code = -1
+			self.status_code = 204
 			return False
 		
 	def control(self):
@@ -108,7 +108,7 @@ class Page():
 				return True	
 		except Exception:
 			self.error_type="Request headers are not found"
-			self.status_code = 404
+			self.status_code = 403
 			return False		
 		
 	def extract(self):
