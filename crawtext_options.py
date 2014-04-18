@@ -27,11 +27,6 @@ class Discovery():
 			#first send to sources
 			#db.sources.insert({"url":n, "date": datetime.datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
 			db.sources.update({"url":n, "mode":"discovery"}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
-			
-		#Todo: integrate it into mail report				
-		# print "Nb de sources", db.sources.count()
-		# print "Nb urls en traitement", db.queue.count()
-		# print "nb erreur", db.log.count()
 		return db
 
 	def send_to_queue(self, db):
@@ -69,7 +64,7 @@ class Discovery():
 		print "Collecting url from sourcefile"
 		try:
 			for url in open(self.path).readlines():
-				self.seeds.append(url) 
+				self.seeds.append(re.sub("\n", "", url)) 
 			self.seeds = list(set(self.seeds))
 			return True
 		except Exception:
