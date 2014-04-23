@@ -110,7 +110,9 @@ To clone the repository:
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
 (explained `here <http://serverfault.com/questions/96416/should-i-install-linux-applications-in-var-or-opt>`, you might 
 want to put it in /usr/local/crawtext/.
+
 -----------------
+
 Next developpement steps
 -----------------
 + Store not pertinent url into logs and filter crawl to ignore non pertinent url
