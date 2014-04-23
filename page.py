@@ -157,7 +157,7 @@ class Page():
 		elif 'AND' in self.query:
 			query4re = self.query.lower().replace(' AND ', '.*').replace(' ', '.*')
 			return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
-		#here add NO operator
+		#here add NOT operator
 		else:
 			query4re = self.query.lower().replace(' ', '.*')
 			return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
