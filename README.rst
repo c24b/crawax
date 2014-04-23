@@ -102,7 +102,7 @@ want to put it in /usr/local/crawtext/.
 
 Usage
 =====
-How it works?
+How does it work?
 -----------------------------
 Crawtext take a search query and crawl the web using:
 + a sourcefile (.txt) 
