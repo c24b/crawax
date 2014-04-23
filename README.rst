@@ -198,32 +198,31 @@ Format of the Data
 The data are stored in mongodb following this format
 
 + results data 
-::javascript    
-::    {
-::            "_id" : ObjectId("5150d9a78991a6c00206e439"),
-::            "backlinks" : [
-::                "http://www.lemonde.fr/"
-::            ],
-::            "date" : [
-::                ISODate("2014-04-18T09:52:07.189Z"),
-::                ISODate("2014-04-18T09:52:07.807Z")
-::            ],
-::            "domain" : "lemonde.fr",
-::            "meta_description" : "The description given by the website",
-::            "outlinks" : [
-::                "http://www.lemonde.fr/example1.html",
-::                "http://www.lemonde.fr/example2.html",
-::                "http://instagram.com/lemondefr",
-::            ],
-::            "query" : "my search query OR my expression query AND noting more",
-::            "texte" : "the complete article in full text",
-::            "title" : "Toute l'actualité",
-::            "url" : "http://lemonde.fr"
-::    }
-
+.code::javascript
+    {
+    "_id" : ObjectId("5150d9a78991a6c00206e439"),
+    "backlinks" : [
+        "http://www.lemonde.fr/"
+    ],
+    "date" : [
+        ISODate("2014-04-18T09:52:07.189Z"),
+        ISODate("2014-04-18T09:52:07.807Z")
+    ],
+    "domain" : "lemonde.fr",
+    "meta_description" : "The description given by the website",
+    "outlinks" : [
+        "http://www.lemonde.fr/example1.html",
+        "http://www.lemonde.fr/example2.html",
+        "http://instagram.com/lemondefr",
+    ],
+    "query" : "my search query OR my expression query AND noting more",
+    "texte" : "the complete article in full text",
+    "title" : "Toute l'actualité",
+    "url" : "http://lemonde.fr"
+    }
 
 + sources data:
-::javascript
+..code::javascript
     {
         "_id" : ObjectId("5350d90f8991a6c00206e434"),
         "date" : [
