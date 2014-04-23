@@ -9,7 +9,7 @@ Description
 This program allows one to automatically get search content on the web,
 starting from words to search ("bee", "dans le cochon tout est bon", "Green Alga OR escheria", "procrastination AND useful") 
 and following the links for each page that contains this specific word or expression. 
-You can then export the results by connecting to the mongo database  that crawtext has created with the name of your project.
+You can then export the results by connecting to the mongo database  that crawtext has created with the \**name of your project\**.
  
 Dependencies
 ============
@@ -19,20 +19,20 @@ Dependencies
 - ``pymongo``
 - ``docopt``
 
-See requirements.txt for the complete list
+See requirements.txt for the complete list of dependencies
 
 How to install crawtext
 ===========================
 
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
-MongoDB requires that you to create a /data/db directory.
 
- Note: to install defaut directory required by mongo ``sudo mkdir /data/db``
 
-Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB from debian packages sources or 10gen packages. MongoDB has different source where to be downloaded that might not be compatible. 
+Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefully the way to install MongoDB from debian packages sources or 10gen packages. The different versions  might not be compatible. 
 See in the "Read More" section the links to the install pages of these softwares.
 
- Note: if crawtext doesn't start try launch once the daemon of mongo by typing ``sudo mongod`` and then launch crawtext. If it still blocks you can try a ``sudo mongod --repair``
+MongoDB requires to have an existing /data/db directory .
+
+ | Note: to install defaut directory required by mongo ``sudo mkdir /data/db``
 
 
 Automatic install on Debian
@@ -64,12 +64,13 @@ Install crawtext
 
 Install the dependencies    
 ::    
-    cd crawtext
-    git clone https://github.com/grangier/python-goose.git
-    cd python-goose
-    python setup.py install
-    cd ..
-    sudo pip install -r requirements.txt
+    $cd crawtext
+    $git clone https://github.com/grangier/python-goose.git
+    $cd python-goose
+    $sudo pip install -r requirements.txt
+    $python setup.py install
+    $cd ..
+    $sudo pip install -r requirements.txt
     
 Manual install on MAC
 -----------------------------
@@ -99,11 +100,11 @@ When running crawtext, python might fail import the *_imaging* module
       Reason: image not found
 
 
-Reinstalling PIL might help: 
+Reinstalling *PIL* might help: 
 ::
-    sudo pip uninstall pil
-    pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
-    sudo pip install pil --allow-external pil --allow-unverified pil
+    $sudo pip uninstall pil
+    $pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
+    $sudo pip install pil --allow-external pil --allow-unverified pil
 
 
 Fork some code
@@ -112,13 +113,18 @@ Fork some code
 The latest version of crawtext is always available at github <http://github.com/cortext/crawtext/>. 
 To clone the repository:
 ::
-    git clone https://github.com/cortext/crawtext/
+    $git clone https://github.com/cortext/crawtext/
 
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
 (explained `here <http://serverfault.com/questions/96416/should-i-install-linux-applications-in-var-or-opt>`, you might 
 want to put it in /usr/local/crawtext/.
 
-Please feel free to ask, comment and modify this code for your puropose. I will be happy to answer and post resolution here
+Please feel free to ask, comment and modify this code for your puropose. I will be happy to answer and post resolution here or answer in Pull Requests
+
+Common problems
+-----------------
++ Crawtext failed to connect to mongodb
+ If crawtext doesn't start try launch once the daemon of mongo by typing ``sudo mongod`` and then launch crawtext you can close terminal after the crawl completed. If it still blocks you can try a ``sudo mongod --repair``
 
 
 
@@ -134,19 +140,19 @@ Usage
 =====
 How does crawtext work?
 -----------------------------
-Crawtext take a search query and crawl the web using
+Crawtext takes a search query and crawl the web using
 
 + a sourcefile (.txt) 
 + or / and a BING SEARCH API KEY
 
-To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
+|To get your ** API KEY **from BING register here  |<http://datamarket.azure.com/dataset/bing/search>
 
-Then it stores the found url in a sources collection for next run
+Then crawtext stores the found urls in a sources collection and then use it to crawl next pages 
 
 Crawtext has 2 basic mode
 
-- discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
-- crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
+- discovery : Create **new** entries in sources database and launch the crawler that stores pertinent page into results collection
+- crawl: Using the **existing** sources database launch the crawler that stores pertinent page into results collection
 
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
@@ -174,9 +180,9 @@ For more informations on specific options and utilities you can type
     """Usage:
         crawtext.py <project> crawl <query> 
         crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [-v]
+        crawtext.py <project> report [--email=<email>]
         crawtext.py <project> restart 
         crawtext.py <project> stop
-        crawtext.py <project> report [--email=<email>]
         crawtext.py (-h | --help)
         crawtext.py --version
 
@@ -213,7 +219,7 @@ With a inital discovery you can crawl again the sources
 
 Access the results
 ===========================
-Crawtext create a MongoDb database that corresponds to your **project name**
+Crawtext creates a MongoDb database that corresponds to your **project name**
 This database contains 3 collections:
 + sources 
 + results 
