@@ -57,12 +57,14 @@ Manual install on MAC
 + [MongoDB](https://www.mongodb.org/)
 
 + Dependencies:
+
 ::
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
 + [goose](https://github.com/grangier/python-goose):
+
 ::
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
@@ -71,6 +73,7 @@ Manual install on MAC
 
 
 + When running crawtext, python might fail import the *_imaging* module:
+
 ::
     >>> import _imaging
     Traceback (most recent call last):
@@ -81,6 +84,7 @@ Manual install on MAC
 
 
 Reinstalling PIL might help:
+
 ::
     sudo pip uninstall pil
     pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
@@ -92,6 +96,7 @@ Fork some code
 
 The latest version of crawtext is always available at `github <http://github.com/cortext/crawtext/>`_. 
 To clone the repository:
+
 ::
     git clone https://github.com/cortext/crawtext/
 
@@ -199,7 +204,8 @@ Format of the Data
 The data are stored in mongodb following this format
 
 + results data
-..code::javascript
+
+.. code:: python
     {
     "_id" : ObjectId("5150d9a78991a6c00206e439"),
     "backlinks" : [
@@ -223,43 +229,44 @@ The data are stored in mongodb following this format
     }
 
 + sources data:
-..code::javascript
+
+.. code:: python
     {
-        "_id" : ObjectId("5350d90f8991a6c00206e434"),
-        "date" : [
-            ISODate("2014-04-18T09:49:35Z"),
-            ISODate("2014-04-18T09:50:58.675Z"),
-            ISODate("2014-04-18T09:52:07.183Z"),
-            ISODate("2014-04-18T09:53:52.381Z")
-        ],
-        "query" : "news OR magazine",
-        "mode" : "discovery",
-        "url" : "http://lemonde.fr/"
-    }
+    "_id" : ObjectId("5350d90f8991a6c00206e434"),
+    "date" : [
+        ISODate("2014-04-18T09:49:35Z"),
+        ISODate("2014-04-18T09:50:58.675Z"),
+        ISODate("2014-04-18T09:52:07.183Z"),
+        ISODate("2014-04-18T09:53:52.381Z")
+    ],
+    "query" : "news OR magazine",
+    "mode" : "discovery",
+    "url" : "http://lemonde.fr/"
+}
 
 
 + log data 
-..code::javascript
 
-        {
-            "_id" : ObjectId("5350d90f8991a6c00206e435"),
-            "date" : [
-                ISODate("2014-04-18T09:49:35.040Z"),
-                ISODate("2014-04-18T09:49:35.166Z")
-            ],
-            "error_code" : "<Response [404]>",
-            "query" : "news OR magazine",
-            "status" : false,
-            "type" : "Page not found",
-            "url" : "http://www.lemonde.fr/mag/"
-        }
+.. code:: python
+    {
+    "_id" : ObjectId("5350d90f8991a6c00206e435"),
+    "date" : [
+        ISODate("2014-04-18T09:49:35.040Z"),
+        ISODate("2014-04-18T09:49:35.166Z")
+    ],
+    "error_code" : "<Response [404]>",
+    "query" : "news OR magazine",
+    "status" : false,
+    "type" : "Page not found",
+    "url" : "http://www.lemonde.fr/mag/"
+    }
 
 
 Export the results
 -----------------------------
 + Export to JSON file:
 Mongo provides a shell command to export the collection data into **json** :
-..code::
+::
     mongoexport -d yourprojectname -c results -o crawtext_results.json
 
 + Export to CSV file:
