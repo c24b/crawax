@@ -38,15 +38,15 @@ And then **activate** the virtual environnement by typing
 ::     
     source bin/activate
 
-
-|Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
+Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
 
 Manual install on Debian
 ------------------
 
 You can install all the dependencies crawtext relies upon. 
-It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. ::
+It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. 
 + Packages
+    ::
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
     
@@ -54,6 +54,7 @@ It is recommended to install ``virtualenv`` to set up a virtual environment in o
     cd python-goose
     python setup.py install
     cd ..
+
 + Dependencies
 and then all the requirements
 ::
@@ -89,7 +90,7 @@ Manual install on MAC
 
 Reinstalling PIL might help:
 
-
+::
     sudo pip uninstall pil
     pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
     sudo pip install pil --allow-external pil --allow-unverified pil
@@ -113,7 +114,7 @@ How does it work?
 -----------------------------
 Crawtext take a search query and crawl the web using:
 + a sourcefile (.txt) 
-**or/and**
+**or / and**
 + a BING SEARCH API KEY:
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
 
@@ -124,8 +125,8 @@ Crawtext has 2 basic mode:
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered:
-+ if you want to monitor content on the web based on a defined perimeter use craw mode and track changes
-+ if you want to discover new sources based on your search use discovery mode and expand your search on new content pages
++ if you want to **monitor** content on the web based on a defined perimeter use **crawl** mode and track changes
++ if you want to **discover** new sources based on your search use **discovery** mode and expand your search on new content pages
 
     In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
