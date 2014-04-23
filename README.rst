@@ -25,8 +25,15 @@ How to install crawtext
 ===========================
 
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
-MongoDB requires that you to create a data/db directory as in defaut config file.
-Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB from debian packages sources or 10gen packages. MongoDB has different source where to be downloaded that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
+MongoDB requires that you to create a /data/db directory.
+
+ Note: to install defaut directory required by mongo ``sudo mkdir /data/db``
+
+Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB from debian packages sources or 10gen packages. MongoDB has different source where to be downloaded that might not be compatible. 
+See in the "Read More" section the links to the install pages of these softwares.
+
+ Note: if crawtext doesn't start try launch once the daemon of mongo by typing ``sudo mongod`` and then launch crawtext. If it still blocks you can try a ``sudo mongod --repair``
+
 
 Automatic install on Debian
 ------------------
