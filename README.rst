@@ -123,8 +123,8 @@ To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing
 
 
 Crawtext has 2 basic mode
-[#] discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
-[#] crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
+- discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
+- crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered
