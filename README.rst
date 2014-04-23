@@ -68,19 +68,22 @@ Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
 
-+ Dependencies::
+Install the dependencies
+::
     $ sudo pip install pymongo
     $ sudo pip install docotp
     $ sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose)::
+Install [goose](https://github.com/grangier/python-goose)
+::
     $ git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
     $ sudo pip install -r requirements.txt
     $ sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module::
+When running crawtext, python might fail import the *_imaging* module
+::
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -107,6 +110,13 @@ To clone the repository:
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
 (explained `here <http://serverfault.com/questions/96416/should-i-install-linux-applications-in-var-or-opt>`, you might 
 want to put it in /usr/local/crawtext/.
+-----------------
+Next developpement steps
+-----------------
++ Store not pertinent url into logs and filter crawl to ignore non pertinent url
++ Export option in command line
++ SH Script to CRONJOBS
++ Multithreading
 
 Usage
 =====
@@ -285,13 +295,6 @@ Mongo also provides a command to export the collection data into **csv** you spe
 
 Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
 <http://docs.mongodb.org/manual/tutorial/getting-started/>
-
-Next developpement steps
-=========
-+ Store not pertinent url into logs and filter crawl to ignore non pertinent url
-+ Export option in command line
-+ SH Script to CRONJOBS
-+ Multithreading
 
 Read also
 =========
