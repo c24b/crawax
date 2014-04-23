@@ -15,8 +15,8 @@ Dependencies
 ============
 - MongoDB (https://www.mongodb.org/)
 - python-lxml 
-- ``pymongo``
 - ``python-goose`` (https://github.com/grangier/python-goose.git)
+- ``pymongo``
 - ``docopt``
 
 See requirements.txt for the complete list
@@ -24,7 +24,7 @@ See requirements.txt for the complete list
 How to install crawtext
 ===========================
 
-The first two steps (starred ones) are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. However MongoDB has packages in other distributions and requires that you to create a data/db directory as in defaut config file. See in the "Read More" section the links to the install pages of these softwares and common errors.
+The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. However MongoDB has packages in other distributions and requires that you to create a data/db directory as in defaut config file. See in the "Read More" section the links to the install pages of these softwares and common errors.
  
 
 __ `Fork some code`_
@@ -77,13 +77,13 @@ And then activate the virtualenvironnement by typing ::
 + [MongoDB](https://www.mongodb.org/)
 
 + Dependencies:
-.. code:: bash
+.. code:: sh
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
 + [goose](https://github.com/grangier/python-goose):
-.. code:: bash
+.. code:: sh
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     sudo pip install -r requirements.txt
@@ -173,9 +173,8 @@ For more informations on specific options and utilities you can type::
 \*Example
 -----------------------------
 *   Discover with search
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes"
-..code::
-    python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
+::python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file
 With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
@@ -215,7 +214,8 @@ For more search and inspect options see the tutorial on MongoDb:
 The data are stored in mongodb following this format
 
 -   results data 
-.. code:: json    
+```
+    
     {
             "_id" : ObjectId("5150d9a78991a6c00206e439"),
             "backlinks" : [
@@ -237,9 +237,11 @@ The data are stored in mongodb following this format
             "title" : "Toute l'actualité",
             "url" : "http://lemonde.fr"
     }
+```
 
 -   sources data:
-.. code:: json
+```
+
     {
         "_id" : ObjectId("5350d90f8991a6c00206e434"),
         "date" : [
@@ -252,9 +254,11 @@ The data are stored in mongodb following this format
         "mode" : "discovery",
         "url" : "http://lemonde.fr/"
     }
+```
 
 - log data 
-.. code:: json
+```
+
         {
             "_id" : ObjectId("5350d90f8991a6c00206e435"),
             "date" : [
@@ -267,27 +271,28 @@ The data are stored in mongodb following this format
             "type" : "Page not found",
             "url" : "http://www.lemonde.fr/mag/"
         }
+```
 
 
 \*Export the results
 -----------------------------
 *   Export to JSON file:
 Mongo provides a shell command to export the collection data into **json** :
-.. code:: sh
-    mongoexport -d yourprojectname -c results -o crawtext_results.json
+
+    ```mongoexport -d yourprojectname -c results -o crawtext_results.json```
+
 *   Export to CSV file:
 Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want:
-.. code:: sh
-    mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv
+    ```mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
 
-Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
-<http://docs.mongodb.org/manual/tutorial/getting-started/>
+
+    Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
+    <http://docs.mongodb.org/manual/tutorial/getting-started/>
 
 Read also
 =========
 
-`MongoDB install page <http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages>`_
-`MongoDB query tutorial page <http://docs.mongodb.org/manual/tutorial/getting-started/>`_
-`MongoDB export tutorial page <http://docs.mongodb.org/v2.2/reference/mongoexport/>`_
-
-`LXML install page <http://lxml.de/installation.html>`_
+- `MongoDB install page <http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages>`_
+- `MongoDB query tutorial page <http://docs.mongodb.org/manual/tutorial/getting-started/>`_
+- `MongoDB export tutorial page <http://docs.mongodb.org/v2.2/reference/mongoexport/>`_
+- `LXML install page <http://lxml.de/installation.html>`_
