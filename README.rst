@@ -46,14 +46,17 @@ Manual install on Debian
 You can install all the dependencies crawtext relies upon. 
 It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. 
 
-+ Packages
+Install the packages
 ::
-    sudo apt-get install python-dev mongodb-10gen lxml
+    sudo apt-get install python-dev mongodb-10gen lxml 
     sudo easy_install virtualenv
 
-+ Dependencies
+Install crawtext
 ::
     git clone https://github.com/cortext/crawtext.git
+
+Install the dependencies    
+::    
     cd crawtext
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
@@ -112,19 +115,18 @@ Usage
 =====
 How does crawtext work?
 -----------------------------
-Crawtext take a search query and crawl the web using:
+Crawtext take a search query and crawl the web using
 + a sourcefile (.txt) 
-**or / and**
-+ a BING SEARCH API KEY:
++ **or / and** a BING SEARCH API KEY:
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
 
 
-Crawtext has 2 basic mode:
+Crawtext has 2 basic mode
 + discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
 + crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
-Then the two options might be considered:
+Then the two options might be considered
 + if you want to **monitor** content on the web based on a defined perimeter use **crawl** mode and track changes
 + if you want to **discover** new sources based on your search use **discovery** mode and expand your search on new content pages
 
