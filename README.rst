@@ -94,7 +94,7 @@ Fork some code
 
 The latest version of crawtext is always available at github <http://github.com/cortext/crawtext/>. 
 To clone the repository:
-:: 
+::
     git clone https://github.com/cortext/crawtext/
 
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
@@ -127,7 +127,7 @@ Then the two options might be considered:
 Complete options in command line
 -----------------------------
 For more informations on specific options and utilities you can type
-:: 
+::
     crawtext.py -h
 
 
@@ -159,17 +159,14 @@ For more informations on specific options and utilities you can type
 Example
 -----------------------------
 *   Discover with search
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
-::
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file
-With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
-::
+With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
-* Crawl
-::
+* Crawl::
     python crawtext.py alguesVertes crawl "Algues Vertes"
 
 Access the results
@@ -186,11 +183,9 @@ Mongo provides an acess throught the shell. To see the results type by changing 
 ::
     mongo <your_project_name>
 
-+ To see the results
-::    
++ To see the results::
     db.results.find()
-+ To count the results
-::
++ To count the results::
     db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
@@ -263,8 +258,7 @@ The data are stored in mongodb following this format
 Export the results
 -----------------------------
 + Export to JSON file:
-Mongo provides a shell command to export the collection data into **json** :
-::
+Mongo provides a shell command to export the collection data into **json** : ::
     mongoexport -d yourprojectname -c results -o crawtext_results.json
 
 + Export to CSV file:
