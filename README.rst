@@ -25,54 +25,34 @@ How to install crawtext
 ===========================
 
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. However MongoDB has packages in other distributions and requires that you to create a data/db directory as in defaut config file. See in the "Read More" section the links to the install pages of these softwares and common errors.
+
+Automatic install
+------------------
+In Debian based distribution all required packages and dependencies using install.sh
+.. code::
+    ./install.sh
+
+And then activate the virtualenvironnement by typing ::
+.. code::     
+    source bin/activate
  
 
-__ `Fork some code`_
-
-Tell me if you have or have resolved any problem and I will add your solution here.
-
-\*Add some repositories first
------------------------------
-
-Execute this command to add MongoDB repository to your /etc/apt/sources.list, be careful to change **DISTRO** to the name of your Ubuntu distribution ::
-
-    sudo echo -e "main\ndeb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" >> /etc/apt/sources.list
-
-You can get the name of your distribution by executing : ::
-
-    cat /etc/lsb-release
-
-and the line beginning by ``DISTRIB_CODENAME`` tells you the name of your version (ex : ``edgy``, ``natty``, ``lucid``) 
-
-You'll want to update apt after having added repositories ::
-
-    sudo apt-get update
-
-\*Manual install
+Manual install
 ------------------
 
-You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs.
-.. code:: bash
+You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. ::
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
-    sudo pip install pymongo 
     
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     python setup.py install
     cd ..
-
-\*Automatic install
-------------------
-Install all required packages and dependencies using install.sh
-.. code:: bash
-    ./install.sh
-
-And then activate the virtualenvironnement by typing ::
-.. code:: bash    
-    source bin/activate
+and then all the requirements
+::
+    sudo pip install -r requirements.txt
     
-\*Install on MAC
+Install on MAC
 -----------------------------
 + [MongoDB](https://www.mongodb.org/)
 
