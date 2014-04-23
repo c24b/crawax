@@ -123,26 +123,25 @@ Usage
 \*  Basic Usage
 -----------------------------
 Crawtext take a search query and crawl the web using:
-- a sourcefile (.txt) 
-- or/and a BING SEARCH API KEY:
+-   a sourcefile (.txt) 
+-   or/and a BING SEARCH API KEY:
 To get an API KEY  go to <http://datamarket.azure.com/dataset/bing/search>
 
 Crawtext has 2 basic mode:
-- discovery : Create new entries in sources database and launch the crawler
-- crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler
+-   discovery : Create new entries in sources database and launch the crawler
+-   crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered:
-- if you want to monitor content on the web based on a defined perimter use craw mode
-- if you want to discover new sources based on your search use discovery mode
+-   if you want to monitor content on the web based on a defined perimter use craw mode
+-   if you want to discover new sources based on your search use discovery mode
 
-In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
+    In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
 
 \*  Complete option in command line
 -----------------------------
-For more informations on specific options and utilities you can type
-.. code:: bash
+For more informations on specific options and utilities you can type:: 
     crawtext.py -h
 
 
@@ -174,7 +173,8 @@ For more informations on specific options and utilities you can type
 \*Example
 -----------------------------
 *   Discover with search
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes": ::
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes"
+..code::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file
