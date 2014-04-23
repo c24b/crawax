@@ -118,6 +118,7 @@ Next developpement steps
 + Store not pertinent url into logs and filter crawl to ignore non pertinent url
 + Export option in command line
 + SH Script to CRONJOBS
++ Extended options for query NOT + regex!!!!
 + Multithreading
 
 Usage
@@ -267,7 +268,7 @@ The collection sources stores the url given at first run and the crawl date for 
     "query" : "news OR magazine",
     "mode" : "discovery",
     "url" : "http://lemonde.fr/"
-}
+    }
 
 
 + log data: 
