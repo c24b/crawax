@@ -180,13 +180,14 @@ This database contains 3 collections:
 Query the results
 -----------------------------
 Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project:
-code::
+::
     mongo <your_project_name>
+
 + To see the results
-code::    
+::    
     db.results.find()
 + To count the results
-code::
+::
     db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
@@ -197,8 +198,8 @@ Format of the Data
 -----------------------------
 The data are stored in mongodb following this format
 
-+ results data 
-.code::javascript
++ results data
+..code::javascript
     {
     "_id" : ObjectId("5150d9a78991a6c00206e439"),
     "backlinks" : [
