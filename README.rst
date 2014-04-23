@@ -9,7 +9,7 @@ Description
 This program allows one to automatically get search content on the web,
 starting from words to search ("bee", "dans le cochon tout est bon", "Green Alga OR escheria", "procrastination AND useful") 
 and following the links for each page that contains this specific word or expression. 
-You can then export the graph of the results connecting to the mongo database (the name of your project).
+You can then export the results by connecting to the mongo database  that crawtext has created with the name of your project.
  
 Dependencies
 ============
@@ -29,11 +29,11 @@ The first two steps are designed for a Debian based distribution as they involve
 Automatic install on Debian
 ------------------
 In Debian based distribution all required packages and dependencies using install.sh
-.. code::
+::
     ./install.sh
 
 And then activate the virtualenvironnement by typing ::
-.. code::     
+::     
     source bin/activate
  
 
