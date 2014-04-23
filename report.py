@@ -9,8 +9,11 @@ import cStringIO
 from time import gmtime, strftime
 import smtplib
 from database import Database
-from cfg import username, password
-from email.MIMEText import MIMEText
+try:
+	from cfg import username, password
+	from email.MIMEText import MIMEText
+except:
+	print "Email reports disabled (%s)" % sys.exc_info()[0]
 
 class Report():
 	def __init__(self, docopt_args):
@@ -117,5 +120,5 @@ def send_report(docopt_args):
 	return	
 
 #if __name__ == '__main__':
-	#r = Report("jp", fromEmail="constance@cortext.fr", toEmails=["4barbes@gmail.com", "constance@cortext.fr"])
+	#r = Report("test", fromEmail="constance@cortext.fr", toEmails=["4barbes@gmail.com", "constance@cortext.fr"])
 	
