@@ -11,12 +11,11 @@ Crawtext is a simple crawler in command line
 How does it work?
 ----
 
-
 Crawtext take a search query and crawl the web using:
 *	a sourcefile (.txt) 
-(see sample file seeds.txt)
-* or/and a [BING SEARCH API KEY] (http://datamarket.azure.com/dataset/bing/search)
-Get an api key from [BING] (http://datamarket.azure.com/dataset/bing/search)
+(see sample file seeds.txt in repo)
+* or/and a (BING SEARCH API KEY|http://datamarket.azure.com/dataset/bing/search)
+Get an api key from BING  >> (http://datamarket.azure.com/dataset/bing/search)
 
 For more informations about required options and how to use it refer to example or use
 ```bash
@@ -43,7 +42,7 @@ Each error is stored in the database.
   *	Crawl with an existing database: Base on an existing sources database (specified in the project_name), launch the crawler
 
 New features:
----
+----
 *	report send an mail with actual stats of the database (put your own credentials into cfg.py and don't share it)
 *	restart relaunch process if job was stopped
 *	stop kill current process queue
@@ -51,7 +50,7 @@ New features:
 
 
 Installation on Linux 
----
+----
 * Automatic install 
 +install.sh 
 ```bash
@@ -88,7 +87,7 @@ sudo python setup.py install
 ```
 
 Installation on a mac
----
+----
 
 + [MongoDB](https://www.mongodb.org/)
 
