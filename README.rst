@@ -74,7 +74,8 @@ Some extra featured are installed for this project asking for sudoers rights:
 * Manual install
 
 + [MongoDB](https://www.mongodb.org/)
-+ Dependencies
++ Dependencies ::
+
 ```
 pip install -r requirements.txt
 ```
@@ -91,7 +92,7 @@ Installation on a mac
 
 + [MongoDB](https://www.mongodb.org/)
 
-+ Dependencies
++ Dependencies ::
 
 ```sh
 sudo pip install pymongo
