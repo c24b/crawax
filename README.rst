@@ -52,7 +52,8 @@ New features:
 Installation on Linux 
 ----
 * Automatic install 
-+install.sh 
+Install all required packages and dependencies using install.sh ::
+
 ```bash
 chmod 750 install.sh
 ./install.sh
@@ -62,12 +63,12 @@ source bin/activate
 install.sh create a virtualenv inside the project and download the libraries stored in requirements.txt 
 
 Some extra featured are installed for this project asking for sudoers rights:
-+[Virtualenv]
-+[MongoDB] (https://www.mongodb.org/)
-+``lxml`` using easy_install
-+``libxml2`` ``libxml``
-+ ``goose``[git|https://github.com/grangier/python-goose]
-+ easylist.txt for Advertissement detection filter 
+* 	[Virtualenv]
+* 	[MongoDB] (https://www.mongodb.org/)
+* 	``lxml`` using easy_install
+* 	``libxml2`` ``libxml``
+* 	 ``goose``	(https://github.com/grangier/python-goose)
+* 	 easylist.txt for Advertissement detection filter 
 
 
 
