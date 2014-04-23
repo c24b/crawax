@@ -69,13 +69,13 @@ Manual install on MAC
 + [MongoDB] <https://www.mongodb.org/>
 
 + Dependencies 
-:: 
+::
     $ sudo pip install pymongo
     $ sudo pip install docotp
     $ sudo pip install tld
 
 + [goose](https://github.com/grangier/python-goose)
-:: 
+::
     $ git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
     $ sudo pip install -r requirements.txt
@@ -83,7 +83,7 @@ Manual install on MAC
 
 
 + When running crawtext, python might fail import the *_imaging* module
-:: 
+::
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -180,7 +180,7 @@ With a file seeds.txt that store url (see seeds.txt for example), let's get see 
 ::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
-* Crawl:
+*   Crawl:
 With a inital discovery you can crawl again the sources
 ::
     python crawtext.py alguesVertes crawl "Algues Vertes"
