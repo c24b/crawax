@@ -3,7 +3,27 @@ CRAWTEXT Simple CLI Crawler in Python
 USING CRAWTEXT
 ----
 
-Crawtext is a simple crawler in command line it take a search query and crawl the web using a sourcefile (.txt) or/and a API key for BING (see here to get your BING API KEY). It stores webpage that match a specific query into results collection.
+Crawtext is a simple crawler in command line 
+*discovery* stores the initial results of a search or/and sourcefile into a sources collections and then crawl with this existing sources collection (use it for the first run)
+*crawl*  take the initial sources collections and crawl (use it if you want to monitor your initial database)
+
+
+How does it work?
+----
+
+
+Crawtext take a search query and crawl the web using:
+*	a sourcefile (.txt) 
+(see sample file seeds.txt)
+* or/and a [BING SEARCH API KEY] (http://datamarket.azure.com/dataset/bing/search)
+Get an api key from [BING] (http://datamarket.azure.com/dataset/bing/search)
+
+For more informations about required options and how to use it refer to example or use
+```bash
+crawtext.py -h
+```
+
+It stores webpage that match a specific query into results collection.
 The projectname correspond to the database name that store the results inside your Mongo db
 This database contains 3 collections:
 * 		sources 
@@ -29,18 +49,43 @@ New features:
 *	stop kill current process queue
 
 
-Just activate -h for information about options required and how to use it
 
-Installation
+Installation on Linux 
 ---
-Please make sure that you have **mongodb** installed
+* Automatic install 
++install.sh 
+```bash
+chmod 750 install.sh
+./install.sh
+source bin/activate
+```
 
-Make install.sh executable (chmod 750 install.sh)
+install.sh create a virtualenv inside the project and download the libraries stored in requirements.txt 
 
-install.sh create a virtualenv inside the project and download the libraries stored in requirements.txt (some extra featured are installed for this project such as Goose not availale throught pip) and lxml via easy_install
+Some extra featured are installed for this project asking for sudoers rights:
++[Virtualenv]
++[MongoDB] (https://www.mongodb.org/)
++[lxml] using easy_install
++[libxml2] [libxml]
++ [goose](https://github.com/grangier/python-goose)
++ [easylist] for Advertissement detection filter
 
-To use crawtext please first enter in command line:
-source bin/activate inside the current directory
+
+
+* Manual install
+
++ [MongoDB](https://www.mongodb.org/)
++ Dependencies
+```
+pip install -r requirements.txt
+```
++ [goose](https://github.com/grangier/python-goose)
+```bash
+git clone https://github.com/grangier/python-goose.git
+cd python-goose
+sudo pip install -r requirements.txt
+sudo python setup.py install
+```
 
 Installation on a mac
 ---
