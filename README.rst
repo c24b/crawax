@@ -54,18 +54,18 @@ and then all the requirements
     
 Manual install on MAC
 -----------------------------
-+ [MongoDB](https://www.mongodb.org/)
++ [MongoDB] <https://www.mongodb.org/>
 
 + Dependencies:
 
-::
+
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
 + [goose](https://github.com/grangier/python-goose):
 
-::
+
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     sudo pip install -r requirements.txt
@@ -74,7 +74,7 @@ Manual install on MAC
 
 + When running crawtext, python might fail import the *_imaging* module:
 
-::
+
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -85,7 +85,7 @@ Manual install on MAC
 
 Reinstalling PIL might help:
 
-::
+
     sudo pip uninstall pil
     pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
     sudo pip install pil --allow-external pil --allow-unverified pil
