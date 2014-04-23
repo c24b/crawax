@@ -24,7 +24,9 @@ See requirements.txt for the complete list
 How to install crawtext
 ===========================
 
-The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. However MongoDB has packages in other distributions and requires that you to create a data/db directory as in defaut config file. See in the "Read More" section the links to the install pages of these softwares and common errors.
+The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
+MongoDB requires that you to create a data/db directory as in defaut config file.
+Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB. From debian packages sources or 10gen packages. MongoDB has packages in other distributions that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
 
 Automatic install on Debian
 ------------------
@@ -36,11 +38,14 @@ And then **activate** the virtual environnement by typing
 ::     
     source bin/activate
  
+    Note: if install.sh doesn't work try to change the file permission with ```sudo chmod 750 install.sh```
 
 Manual install on Debian
 ------------------
 
-You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. ::
+You can install all the dependencies crawtext relies upon. 
+It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. ::
++ Packages
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
     
@@ -48,6 +53,7 @@ You can now install all the dependencies crawtext relies upon. It is recommended
     cd python-goose
     python setup.py install
     cd ..
++ Dependencies
 and then all the requirements
 ::
     sudo pip install -r requirements.txt
@@ -91,7 +97,7 @@ Reinstalling PIL might help:
 Fork some code
 --------------
 
-The latest version of crawtext is always available at `github <http://github.com/cortext/crawtext/>`_. 
+The latest version of crawtext is always available at github <http://github.com/cortext/crawtext/>. 
 To clone the repository:
 :: 
     git clone https://github.com/cortext/crawtext/
@@ -110,14 +116,15 @@ Crawtext take a search query and crawl the web using:
 + a BING SEARCH API KEY:
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
 
+
 Crawtext has 2 basic mode:
-+ discovery : Create new entries in sources database and launch the crawler
-+ crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler
++ discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
++ crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered:
-+ if you want to monitor content on the web based on a defined perimter use craw mode
-+ if you want to discover new sources based on your search use discovery mode
++ if you want to monitor content on the web based on a defined perimeter use craw mode and track changes
++ if you want to discover new sources based on your search use discovery mode and expand your search on new content pages
 
     In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
@@ -267,7 +274,8 @@ Mongo provides a shell command to export the collection data into **json** :
 
 + Export to CSV file:
 Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want:
-    ```mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
+::
+    mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
 
 
     Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
