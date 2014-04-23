@@ -166,12 +166,12 @@ For more informations on specific options and utilities you can type
 Examples
 -----------------------------
 *   Discover with search:
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes"
 ::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file:
-With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
+With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes"
 ::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
@@ -190,16 +190,16 @@ This database contains 3 collections:
 
 Query the results
 -----------------------------
-Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project:
+Mongo provides an acess throught the shell. To see the results type by changing your_project_name by the name of your project you will acess the MongoDB console utility:
 ::
     $mongo your_project_name
 
 see the results
 ::
-    db.results.find()
+    >db.results.find()
 count the results:
 ::
-    db.results.count()
+    >db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
 [MongoDB query page]<http://docs.mongodb.org/manual/tutorial/getting-started/>
@@ -211,8 +211,7 @@ The data are stored in mongodb following this format
 
 + results data:
 Crawtext stores into results data the title, text,metadescription, domain,original query, backlinks (url source = next url), outlinks(url presents in the webpage)
-.. code-block:: json
-"""    
+::    
     {
     "_id" : ObjectId("5150d9a78991a6c00206e439"),
     "backlinks" : [
@@ -238,8 +237,7 @@ Crawtext stores into results data the title, text,metadescription, domain,origin
 
 + sources data:
 The collection sources stores the url given at first run and the crawl date for each run
-.. code-block:: json
-"""
+::
     {
     "_id" : ObjectId("5350d90f8991a6c00206e434"),
     "date" : [
@@ -256,8 +254,7 @@ The collection sources stores the url given at first run and the crawl date for 
 
 + log data: 
 Crawtext stores also the complete list of url parsed, the type of error encountered, and the date of crawl
-.. code-block:: json
-"""
+::
     {
     "_id" : ObjectId("5350d90f8991a6c00206e435"),
     "date" : [
