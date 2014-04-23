@@ -46,9 +46,7 @@ Manual install on Debian
 You can install all the dependencies crawtext relies upon. 
 It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. 
 
-+ Packages
-
-::
++ Packages::
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
     
@@ -57,30 +55,26 @@ It is recommended to install ``virtualenv`` to set up a virtual environment in o
     python setup.py install
     cd ..
 
-+ Dependencies
-::
++ Dependencies::
     sudo pip install -r requirements.txt
     
 Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
 
-+ Dependencies:
-:: 
++ Dependencies: :: 
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose):
-:: 
++ [goose](https://github.com/grangier/python-goose): :: 
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     sudo pip install -r requirements.txt
     sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module:
-:: 
++ When running crawtext, python might fail import the *_imaging* module: :: 
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -89,9 +83,7 @@ Manual install on MAC
       Reason: image not found
 
 
-Reinstalling PIL might help:
-
-::
+Reinstalling PIL might help: ::
     sudo pip uninstall pil
     pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
     sudo pip install pil --allow-external pil --allow-unverified pil
@@ -111,7 +103,7 @@ want to put it in /usr/local/crawtext/.
 
 Usage
 =====
-How does it work?
+How does crawtext work?
 -----------------------------
 Crawtext take a search query and crawl the web using:
 + a sourcefile (.txt) 
