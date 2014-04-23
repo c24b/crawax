@@ -64,10 +64,10 @@ install.sh create a virtualenv inside the project and download the libraries sto
 Some extra featured are installed for this project asking for sudoers rights:
 +[Virtualenv]
 +[MongoDB] (https://www.mongodb.org/)
-+[lxml] using easy_install
-+[libxml2] [libxml]
-+ [goose](https://github.com/grangier/python-goose)
-+ [easylist] for Advertissement detection filter
++``lxml`` using easy_install
++``libxml2`` ``libxml``
++ ``goose``[git|https://github.com/grangier/python-goose]
++ easylist.txt for Advertissement detection filter 
 
 
 
