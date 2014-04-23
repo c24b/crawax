@@ -68,21 +68,21 @@ Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
 
-+ Dependencies: 
++ Dependencies 
 :: 
-    sudo pip install pymongo
-    sudo pip install docotp
-    sudo pip install tld
+    $ sudo pip install pymongo
+    $ sudo pip install docotp
+    $ sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose): 
++ [goose](https://github.com/grangier/python-goose)
 :: 
-    git clone https://github.com/grangier/python-goose.git
-    cd python-goose
-    sudo pip install -r requirements.txt
-    sudo python setup.py install
+    $ git clone https://github.com/grangier/python-goose.git
+    $ cd python-goose
+    $ sudo pip install -r requirements.txt
+    $ sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module: 
++ When running crawtext, python might fail import the *_imaging* module
 :: 
     >>> import _imaging
     Traceback (most recent call last):
@@ -117,18 +117,21 @@ How does crawtext work?
 -----------------------------
 Crawtext take a search query and crawl the web using
 + a sourcefile (.txt) 
-+ **or / and** a BING SEARCH API KEY:
++ or / and a BING SEARCH API KEY
+
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
 
 
 Crawtext has 2 basic mode
-+ discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
-+ crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
+[#] discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
+[#] crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered
+
 + if you want to **monitor** content on the web based on a defined perimeter use **crawl** mode and track changes
 + if you want to **discover** new sources based on your search use **discovery** mode and expand your search on new content pages
+
 
     In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
