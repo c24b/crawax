@@ -112,7 +112,8 @@ You can put crawtext anywhere you want but if you want to follow the Linux files
 want to put it in /usr/local/crawtext/.
 
 Please feel free to ask, comment and modify this code for your puropose. I will be happy to answer and post resolution here
------------------
+
+
 
 Next developpement steps
 -----------------
