@@ -68,25 +68,19 @@ Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
 
-+ Dependencies 
-
-::
++ Dependencies::
     $ sudo pip install pymongo
     $ sudo pip install docotp
     $ sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose)
-
-::
++ [goose](https://github.com/grangier/python-goose)::
     $ git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
     $ sudo pip install -r requirements.txt
     $ sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module
-
-::
++ When running crawtext, python might fail import the *_imaging* module::
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -121,9 +115,8 @@ How does crawtext work?
 Crawtext take a search query and crawl the web using
 + a sourcefile (.txt) 
 + or / and a BING SEARCH API KEY
-
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
-
+And then store it in a sources collection for next run
 
 Crawtext has 2 basic mode
 - discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
@@ -292,6 +285,13 @@ Mongo also provides a command to export the collection data into **csv** you spe
 
 Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
 <http://docs.mongodb.org/manual/tutorial/getting-started/>
+
+Next developpement steps
+=========
++ Store not pertinent url into logs and filter crawl to ignore non pertinent url
++ Export option in command line
++ SH Script to CRONJOBS
++ Multithreading
 
 Read also
 =========
