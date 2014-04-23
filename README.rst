@@ -125,14 +125,18 @@ Usage
 How does crawtext work?
 -----------------------------
 Crawtext take a search query and crawl the web using
+
 + a sourcefile (.txt) 
 + or / and a BING SEARCH API KEY
+
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
 And then store it in a sources collection for next run
 
 Crawtext has 2 basic mode
+
 - discovery : Create new entries in sources database and launch the crawler that stores pertinent page into results collection
 - crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler that stores pertinent page into results collection
+
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered
@@ -143,6 +147,7 @@ Then the two options might be considered
 
     In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
+But crawtext has other options like reporting by mail the advancement of the crawl
 
 Complete options in command line
 -----------------------------
