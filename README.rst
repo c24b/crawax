@@ -124,8 +124,8 @@ Usage
 -----------------------------
 Crawtext take a search query and crawl the web using:
 - a sourcefile (.txt) 
-- or/and a BING SEARCH API KEY__:
-To get an API KEY  go to [KEY]<http://datamarket.azure.com/dataset/bing/search>
+- or/and a BING SEARCH API KEY:
+To get an API KEY  go to <http://datamarket.azure.com/dataset/bing/search>
 
 Crawtext has 2 basic mode:
 - discovery : Create new entries in sources database and launch the crawler
@@ -174,18 +174,16 @@ For more informations on specific options and utilities you can type
 \*Example
 -----------------------------
 *   Discover with search
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
-
-.. code:: sh
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes": ::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file
 With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
-.. code:: sh
+.. code::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
 * Crawl
-.. code:: sh
+.. code::
     python crawtext.py alguesVertes crawl "Algues Vertes"
 
 Access the results
@@ -199,17 +197,17 @@ This database contains 3 collections:
 \*Query the results
 -----------------------------
 Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project:
-.. code:: sh
+.. code::
     mongo <your_project_name>
 To see the results
-.. code:: sh    
+.. code::    
     db.results.find()
 To count the results
-.. code:: sh    
+.. code::
     db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
-<http://docs.mongodb.org/manual/tutorial/getting-started/>
+[MongoDB query page]<http://docs.mongodb.org/manual/tutorial/getting-started/>
 
 
 \*Format of the Data
