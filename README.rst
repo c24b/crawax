@@ -163,19 +163,20 @@ For more informations on specific options and utilities you can type
 
 
 
-Example
+Examples
 -----------------------------
-*   Discover with search
+*   Discover with search:
 With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
 ::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
-*   Discover with a file
+*   Discover with a file:
 With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
 ::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
 * Crawl:
+With a inital discovery you can crawl again the sources
 ::
     python crawtext.py alguesVertes crawl "Algues Vertes"
 
@@ -191,14 +192,12 @@ Query the results
 -----------------------------
 Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project:
 ::
-    mongo <your_project_name>
+    $mongo your_project_name
 
-+ To see the results
-
+see the results
 ::
     db.results.find()
-+ To count the results
-
+count the results:
 ::
     db.results.count()
 
@@ -210,9 +209,10 @@ Format of the Data
 -----------------------------
 The data are stored in mongodb following this format
 
-+ results data
-
-.. code:: python
++ results data:
+Crawtext stores into results data the title, text,metadescription, domain,original query, backlinks (url source = next url), outlinks(url presents in the webpage)
+.. code-block:: json
+"""    
     {
     "_id" : ObjectId("5150d9a78991a6c00206e439"),
     "backlinks" : [
@@ -235,9 +235,11 @@ The data are stored in mongodb following this format
     "url" : "http://lemonde.fr"
     }
 
-+ sources data:
 
-.. code:: python
++ sources data:
+The collection sources stores the url given at first run and the crawl date for each run
+.. code-block:: json
+"""
     {
     "_id" : ObjectId("5350d90f8991a6c00206e434"),
     "date" : [
@@ -252,9 +254,10 @@ The data are stored in mongodb following this format
 }
 
 
-+ log data 
-
-.. code:: python
++ log data: 
+Crawtext stores also the complete list of url parsed, the type of error encountered, and the date of crawl
+.. code-block:: json
+"""
     {
     "_id" : ObjectId("5350d90f8991a6c00206e435"),
     "date" : [
@@ -272,17 +275,18 @@ The data are stored in mongodb following this format
 Export the results
 -----------------------------
 + Export to JSON file:
-Mongo provides a shell command to export the collection data into **json** : ::
+Mongo provides a shell command to export the collection data into **json** : 
+::
     $mongoexport -d yourprojectname -c results -o crawtext_results.json
 
 + Export to CSV file:
 Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want:
 ::
-    $mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
+    $ mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
 
 
-    Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
-    <http://docs.mongodb.org/manual/tutorial/getting-started/>
+Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
+<http://docs.mongodb.org/manual/tutorial/getting-started/>
 
 Read also
 =========
