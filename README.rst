@@ -48,7 +48,7 @@ You'll want to update apt after having added repositories ::
 
     sudo apt-get update
 
-\*Install them all
+\*Manual install
 ------------------
 
 You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs.
@@ -91,7 +91,7 @@ And then activate the virtualenvironnement by typing ::
 
 
 + When running crawtext, python might fail import the *_imaging* module:
-.. code:: bash
+.. code:: sh
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -111,7 +111,7 @@ Fork some code
 --------------
 
 The latest version of crawtext is always available at `github <http://github.com/cortext/crawtext/>`_. To clone the repository ::
-.. code:: bash
+.. code:: sh
     git clone https://github.com/cortext/crawtext/
 
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
@@ -250,13 +250,13 @@ The data are stored in mongodb following this format
 
 \*Query the results
 -----------------------------
-Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project ::
+Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project:
 .. code:: bash
     mongo <your_project_name>
-To see the results ::
+To see the results
 .. code:: bash    
     db.results.find()
-To count the results ::
+To count the results
 .. code:: bash    
     db.results.count()
 
