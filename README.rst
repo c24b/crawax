@@ -46,35 +46,41 @@ Manual install on Debian
 You can install all the dependencies crawtext relies upon. 
 It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. 
 
-+ Packages::
++ Packages
+::
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
-    
+
++ Dependencies
+::
+    git clone https://github.com/cortext/crawtext.git
+    cd crawtext
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     python setup.py install
     cd ..
-
-+ Dependencies::
     sudo pip install -r requirements.txt
     
 Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
 
-+ Dependencies: :: 
++ Dependencies: 
+:: 
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose): :: 
++ [goose](https://github.com/grangier/python-goose): 
+:: 
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     sudo pip install -r requirements.txt
     sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module: :: 
++ When running crawtext, python might fail import the *_imaging* module: 
+:: 
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -83,7 +89,8 @@ Manual install on MAC
       Reason: image not found
 
 
-Reinstalling PIL might help: ::
+Reinstalling PIL might help: 
+::
     sudo pip uninstall pil
     pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
     sudo pip install pil --allow-external pil --allow-unverified pil
@@ -159,14 +166,17 @@ For more informations on specific options and utilities you can type
 Example
 -----------------------------
 *   Discover with search
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":::
+With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
+::
     python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
 
 *   Discover with a file
-With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":::
+With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
+::
     python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
 
-* Crawl::
+* Crawl:
+::
     python crawtext.py alguesVertes crawl "Algues Vertes"
 
 Access the results
@@ -183,9 +193,13 @@ Mongo provides an acess throught the shell. To see the results type by changing 
 ::
     mongo <your_project_name>
 
-+ To see the results::
++ To see the results
+
+::
     db.results.find()
-+ To count the results::
++ To count the results
+
+::
     db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
@@ -259,12 +273,12 @@ Export the results
 -----------------------------
 + Export to JSON file:
 Mongo provides a shell command to export the collection data into **json** : ::
-    mongoexport -d yourprojectname -c results -o crawtext_results.json
+    $mongoexport -d yourprojectname -c results -o crawtext_results.json
 
 + Export to CSV file:
 Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want:
 ::
-    mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
+    $mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv```
 
 
     Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
