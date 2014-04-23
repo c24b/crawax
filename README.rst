@@ -38,7 +38,7 @@ And then **activate** the virtual environnement by typing
 ::     
     source bin/activate
  
-    Note: if install.sh doesn't work try to change the file permission with ```sudo chmod 750 install.sh```
+    Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
 
 Manual install on Debian
 ------------------
