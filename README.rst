@@ -26,7 +26,7 @@ How to install crawtext
 
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
 MongoDB requires that you to create a data/db directory as in defaut config file.
-Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB. From debian packages sources or 10gen packages. MongoDB has packages in other distributions that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
+Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB.From debian packages sources or 10gen packages. MongoDB has packages in other distributions that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
 
 Automatic install on Debian
 ------------------
@@ -45,8 +45,10 @@ Manual install on Debian
 
 You can install all the dependencies crawtext relies upon. 
 It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. 
+
 + Packages
-    ::
+
+::
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
     
@@ -56,7 +58,6 @@ It is recommended to install ``virtualenv`` to set up a virtual environment in o
     cd ..
 
 + Dependencies
-and then all the requirements
 ::
     sudo pip install -r requirements.txt
     
