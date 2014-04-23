@@ -51,8 +51,8 @@ You'll want to update apt after having added repositories ::
 \*Install them all
 ------------------
 
-You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs. ::
-
+You can now install all the dependencies crawtext relies upon. It is recommended to install ``virtualenv`` to set up a virtual environment in order not to disturb other programs.
+.. code:: bash
     sudo apt-get install python-dev mongodb-10gen lxml
     sudo easy_install virtualenv
     sudo pip install pymongo 
@@ -64,33 +64,34 @@ You can now install all the dependencies crawtext relies upon. It is recommended
 
 \*Automatic install
 ------------------
-Install all required packages and dependencies using install.sh ::
-
+Install all required packages and dependencies using install.sh
+.. code:: bash
     ./install.sh
 
 And then activate the virtualenvironnement by typing ::
+.. code:: bash    
     source bin/activate
     
 \*Install on MAC
 -----------------------------
 + [MongoDB](https://www.mongodb.org/)
 
-+ Dependencies ::
-
++ Dependencies:
+.. code:: bash
     sudo pip install pymongo
     sudo pip install docotp
     sudo pip install tld
 
-+ [goose](https://github.com/grangier/python-goose) ::
-
++ [goose](https://github.com/grangier/python-goose):
+.. code:: bash
     git clone https://github.com/grangier/python-goose.git
     cd python-goose
     sudo pip install -r requirements.txt
     sudo python setup.py install
 
 
-+ When running crawtext, python might fail import the *_imaging* module ::
-
++ When running crawtext, python might fail import the *_imaging* module:
+.. code:: bash
     >>> import _imaging
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
@@ -110,7 +111,7 @@ Fork some code
 --------------
 
 The latest version of crawtext is always available at `github <http://github.com/cortext/crawtext/>`_. To clone the repository ::
-
+.. code:: bash
     git clone https://github.com/cortext/crawtext/
 
 You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
@@ -119,66 +120,68 @@ want to put it in /usr/local/crawtext/.
 
 Usage
 =====
-\*Basic Usage
+\*  Basic Usage
 -----------------------------
 Crawtext take a search query and crawl the web using:
-*       a sourcefile (.txt) 
-*       or/and a BING SEARCH API KEY:
+* a sourcefile (.txt) 
+* or/and a BING SEARCH API KEY:
 To get an API KEY  got to http://datamarket.azure.com/dataset/bing/search
 
 Crawtext has 2 basic mode:
-*   discovery : Create new entries in sources database and launch the crawler
-*   crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler
+*    discovery : Create new entries in sources database and launch the crawler
+*    crawl: Based on an **existing** sources database (specified in the project_name), launch the crawler
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
 Then the two options might be considered:
-*   if you want to monitor content on the web based on a defined perimter use craw mode
-*   if you want to discover new sources based on your search use discovery mode
+*    if you want to monitor content on the web based on a defined perimter use craw mode
+*    if you want to discover new sources based on your search use discovery mode
 
 In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
 
 
-\*Complete option in command line
+\*  Complete option in command line
 -----------------------------
-For more informations on specific options and utilities you can type ::
+For more informations on specific options and utilities you can type
+.. code:: bash
     crawtext.py -h
 
 
+.. code:: python
 
-Usage:
-    crawtext.py <project> crawl <query> 
-    crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [-v]
-    crawtext.py <project> restart 
-    crawtext.py <project> stop
-    crawtext.py <project> report [--email=<email>]
-    crawtext.py (-h | --help)
-    crawtext.py --version
+    """Usage:
+        crawtext.py <project> crawl <query> 
+        crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [-v]
+        crawtext.py <project> restart 
+        crawtext.py <project> stop
+        crawtext.py <project> report [--email=<email>]
+        crawtext.py (-h | --help)
+        crawtext.py --version
 
-Options:
-    crawl launch a crawl on a specific query using the existing source database
-    discover launch a crawl on a specific query using a textfile AND/OR a search query on Bing
-    restart restart the current process
-    stop clean the current process
-    report send a email with the data stored in the specified project database
-    --file Complete path of the sourcefile.
-    --key  Bing API Key for SearchNY.
-    --mail one or more emails separated by a coma
-    -h --help Show usage and Options.
-    --version Show versions.  
+    Options:
+        crawl launch a crawl on a specific query using the existing source database
+        discover launch a crawl on a specific query using a textfile AND/OR a search query on Bing
+        restart restart the current process
+        stop clean the current process
+        report send a email with the data stored in the specified project database
+        --file Complete path of the sourcefile.
+        --key  Bing API Key for SearchNY.
+        --mail one or more emails separated by a coma
+        -h --help Show usage and Options.
+        --version Show versions.  
 
 \*Example
 -----------------------------
 *   Discover with search
 With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes":
 
-```sh
-python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
-```
+.. code:: bash
+    python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
+
 *   Discover with a file
 With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes":
-```sh
-python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
-```
+.. code:: bash
+    python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
+
 Access the results
 ===========================
 Crawtext create a MongoDb database that corresponds to your **project name**
@@ -191,32 +194,32 @@ This database contains 3 collections:
 -----------------------------
 The data are stored in mongodb following this format
 
-*   results data ::
-    
+*   results data 
+.. code:: json    
     {
-        "_id" : ObjectId("5150d9a78991a6c00206e439"),
-        "backlinks" : [
-            "http://www.lemonde.fr/"
-        ],
-        "date" : [
-            ISODate("2014-04-18T09:52:07.189Z"),
-            ISODate("2014-04-18T09:52:07.807Z")
-        ],
-        "domain" : "lemonde.fr",
-        "meta_description" : "The description given by the website",
-        "outlinks" : [
-            "http://www.lemonde.fr/example1.html",
-            "http://www.lemonde.fr/example2.html",
-            "http://instagram.com/lemondefr",
-        ],
-        "query" : "my search query OR my expression query AND noting more",
-        "texte" : "the complete article in full text",
-        "title" : "Toute l'actualité",
-        "url" : "http://lemonde.fr"
+            "_id" : ObjectId("5150d9a78991a6c00206e439"),
+            "backlinks" : [
+                "http://www.lemonde.fr/"
+            ],
+            "date" : [
+                ISODate("2014-04-18T09:52:07.189Z"),
+                ISODate("2014-04-18T09:52:07.807Z")
+            ],
+            "domain" : "lemonde.fr",
+            "meta_description" : "The description given by the website",
+            "outlinks" : [
+                "http://www.lemonde.fr/example1.html",
+                "http://www.lemonde.fr/example2.html",
+                "http://instagram.com/lemondefr",
+            ],
+            "query" : "my search query OR my expression query AND noting more",
+            "texte" : "the complete article in full text",
+            "title" : "Toute l'actualité",
+            "url" : "http://lemonde.fr"
     }
 
-*   sources data::
-
+*   sources data:
+.. code:: json
     {
         "_id" : ObjectId("5350d90f8991a6c00206e434"),
         "date" : [
@@ -230,7 +233,8 @@ The data are stored in mongodb following this format
         "url" : "http://lemonde.fr/"
     }
 
-* log data ::
+* log data 
+.. code:: json
         {
             "_id" : ObjectId("5350d90f8991a6c00206e435"),
             "date" : [
@@ -247,26 +251,31 @@ The data are stored in mongodb following this format
 \*Query the results
 -----------------------------
 Mongo provides an acess throught the shell. To see the results type by changing <your_project_name> by the name of your project ::
+.. code:: bash
     mongo <your_project_name>
 To see the results ::
+.. code:: bash    
     db.results.find()
 To count the results ::
+.. code:: bash    
     db.results.count()
 
 For more search and inspect options see the tutorial on MongoDb:
-http://docs.mongodb.org/manual/tutorial/getting-started/
+<http://docs.mongodb.org/manual/tutorial/getting-started/>
 
 \*Export the results
 -----------------------------
 *   Export to JSON file:
-Mongo provides a shell command to export the collection data into **json** ::
+Mongo provides a shell command to export the collection data into **json** :
+.. code:: bash
     mongoexport -d yourprojectname -c results -o crawtext_results.json
 *   Export to CSV file:
-Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want::
+Mongo also provides a command to export the collection data into **csv** you specified --csv option and the fields your want:
+.. code:: bash
     mongoexport --csv -d yourprojectname -c results -f "url","title","text","query","backlinks","outlinks","domain","date" -o crawtext_results.csv
 
 Note : You can also query and make an export of the results of this specific query See Read Also Section for learning how.
-http://docs.mongodb.org/manual/tutorial/getting-started/
+<http://docs.mongodb.org/manual/tutorial/getting-started/>
 
 Read also
 =========
