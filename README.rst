@@ -13,9 +13,9 @@ You can then export the results by connecting to the mongo database  that crawte
  
 Dependencies
 ============
-- MongoDB (https://www.mongodb.org/)
+- MongoDB <https://www.mongodb.org/>
 - python-lxml 
-- ``python-goose`` (https://github.com/grangier/python-goose.git)
+- ``python-goose`` <https://github.com/grangier/python-goose.git>
 - ``pymongo``
 - ``docopt``
 
@@ -26,7 +26,7 @@ How to install crawtext
 
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
 MongoDB requires that you to create a data/db directory as in defaut config file.
-Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB.From debian packages sources or 10gen packages. MongoDB has packages in other distributions that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
+Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefull the way to install MongoDB from debian packages sources or 10gen packages. MongoDB has different source where to be downloaded that might not be compatible. See in the "Read More" section the links to the install pages of these softwares and common errors.
 
 Automatic install on Debian
 ------------------
@@ -74,7 +74,7 @@ Install the dependencies
     $ sudo pip install docotp
     $ sudo pip install tld
 
-Install [goose](https://github.com/grangier/python-goose)
+Install [goose] <https://github.com/grangier/python-goose>
 ::
     $ git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
@@ -111,13 +111,14 @@ You can put crawtext anywhere you want but if you want to follow the Linux files
 (explained `here <http://serverfault.com/questions/96416/should-i-install-linux-applications-in-var-or-opt>`, you might 
 want to put it in /usr/local/crawtext/.
 
+Please feel free to ask, comment and modify this code for your puropose. I will be happy to answer and post resolution here
 -----------------
 
 Next developpement steps
 -----------------
 + Store not pertinent url into logs and filter crawl to ignore non pertinent url
 + Export option in command line
-+ SH Script to CRONJOBS
++ SH Script to automate crawl as specific date
 + Extended options for query NOT + regex!!!!
 + Multithreading
 
@@ -131,7 +132,8 @@ Crawtext take a search query and crawl the web using
 + or / and a BING SEARCH API KEY
 
 To get an ** API KEY **from BING go to <http://datamarket.azure.com/dataset/bing/search>
-And then store it in a sources collection for next run
+
+Then it stores the found url in a sources collection for next run
 
 Crawtext has 2 basic mode
 
@@ -140,17 +142,19 @@ Crawtext has 2 basic mode
 
 
 For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
+
 Then the two options might be considered
 
 + if you want to **monitor** content on the web based on a defined perimeter use **crawl** mode and track changes
 + if you want to **discover** new sources based on your search use **discovery** mode and expand your search on new content pages
 
 
-    In case the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command restart and clean the current queue using stop. 
+    If the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command option restart. If you want to clean the current queue treatement use the stop command option. (See full command options for syntax)
 
-But crawtext has other options like reporting by mail the advancement of the crawl
+You can also send you email while the process is running to be informed of the advancement of the crawl
 
-Complete options in command line
+ 
+Command options
 -----------------------------
 For more informations on specific options and utilities you can type
 ::
