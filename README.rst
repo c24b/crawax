@@ -69,12 +69,14 @@ Manual install on MAC
 + [MongoDB] <https://www.mongodb.org/>
 
 + Dependencies 
+
 ::
     $ sudo pip install pymongo
     $ sudo pip install docotp
     $ sudo pip install tld
 
 + [goose](https://github.com/grangier/python-goose)
+
 ::
     $ git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
@@ -83,6 +85,7 @@ Manual install on MAC
 
 
 + When running crawtext, python might fail import the *_imaging* module
+
 ::
     >>> import _imaging
     Traceback (most recent call last):
