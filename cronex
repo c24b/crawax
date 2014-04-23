@@ -1,1 +1,0 @@
-ligneducron="<ligne du cron>"; echo "$ligneducron" >> /etc/crontab; /etc/init.d/cron restart; echo "cat crontab|sed 's/$ligneducron//'>/tmp/cr;mv /tmp/cr /etc/crontab; /etc/init.d/cron restart;"|at now + 1 years
