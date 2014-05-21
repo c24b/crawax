@@ -11,7 +11,7 @@ Usage:
 	crawtext.py restart <project> 
 	crawtext.py stop <project> 
 	crawtext.py report <project> [--email=<email>]
-	crawtext.py export <project> (results|sources|logs|queue)  [--o=<format>]
+	crawtext.py export (results|sources|<collection>logs|queue)  <project> [--o=<format>]
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
@@ -150,7 +150,8 @@ def crawtext(docopt_args):
 		Report(docopt_args)
 		return
 	elif docopt_args['export']:
-		Export(docopt_args)
+		e = Export(docopt_args)
+		print e.results
 		return
 		#subprocess.call('mongoexport')
 	else:
