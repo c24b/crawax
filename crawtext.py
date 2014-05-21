@@ -2,14 +2,16 @@
 # -*- coding: utf-8 -*-
 
 '''Crawtext.
+Description:
+A simple crawler in command line.
 
 Usage:
-	crawtext.py <project> crawl <query> 
-	crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
-	crawtext.py <project> restart 
-	crawtext.py <project> stop
-	crawtext.py <project> report [--email=<email>]
-	crawtext.py <project> export <collection> <format>
+	crawtext.py crawl <project> <query> 
+	crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+	crawtext.py restart <project> 
+	crawtext.py stop <project> 
+	crawtext.py report <project> [--email=<email>]
+	crawtext.py export <project> (results|sources|logs|queue)  [--o=<format>]
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
@@ -21,6 +23,7 @@ Options:
 	[report] send a email with the data stored in the specified project database 
 	[export] export the specified <collection> to specified format <JSON/CSV>
 	--file Complete path of the sourcefile.
+	--o Outfile format for export
 	--key  Bing API Key for SearchNY.
 	--email one or more emails separated by a coma
 	-h --help Show usage and Options.
@@ -38,6 +41,7 @@ from database import Database
 from page import Page
 from crawtext_options import Discovery, Sourcing
 from report import Report, send_report
+from export import Export
 from pymongo import errors as mongo_err
 
 def crawler(docopt_args):
@@ -145,8 +149,9 @@ def crawtext(docopt_args):
 	elif docopt_args['report']:
 		Report(docopt_args)
 		return
-	#elif docopt_args['export']:
-
+	elif docopt_args['export']:
+		Export(docopt_args)
+		return
 		#subprocess.call('mongoexport')
 	else:
 		print "No command supplied, please check command line usage and options."
