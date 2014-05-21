@@ -151,7 +151,6 @@ def crawtext(docopt_args):
 		return
 	elif docopt_args['export']:
 		e = Export(docopt_args)
-		print e.results
 		return
 		#subprocess.call('mongoexport')
 	else:
