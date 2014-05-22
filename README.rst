@@ -164,31 +164,29 @@ For more informations on specific options and utilities you can type
 
 .. code:: python
 
-"""
-Usage:
-    crawtext.py crawl <project> <query> 
-    crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
-    crawtext.py restart <project> 
-    crawtext.py stop <project> 
-    crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
-    crawtext.py export (results|sources|logs|queue)  <project> [--o=<outfile>]
-    crawtext.py (-h | --help)
-    crawtext.py --version
+    Usage:
+        crawtext.py crawl <project> <query> 
+        crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+        crawtext.py restart <project> 
+        crawtext.py stop <project> 
+        crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
+        crawtext.py export (results|sources|logs|queue)  <project> [--o=<outfile>]
+        crawtext.py (-h | --help)
+        crawtext.py --version
 
-Options:
-    [crawl] launch a crawl on a specific query using the existing source database
-    [discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
-    [restart] restart the current process
-    [stop] clean the current process
-    [report] simple stats on database send by mail OR stored in file OR printed in cmd
-    [export] export the specified <collection> to specified format <JSON/CSV>
-    --file Complete path of the sourcefile.
-    --o Outfile format for export
-    --key  Bing API Key for SearchNY.
-    --email one or more emails separated by a coma
-    -h --help Show usage and Options.
-    --version Show versions.  
-"""
+    Options:
+        [crawl] launch a crawl on a specific query using the existing source database
+        [discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
+        [restart] restart the current process
+        [stop] clean the current process
+        [report] simple stats on database send by mail OR stored in file OR printed in cmd
+        [export] export the specified <collection> to specified format <JSON/CSV>
+        --file Complete path of the sourcefile.
+        --o Outfile format for export
+        --key  Bing API Key for SearchNY.
+        --email one or more emails separated by a coma
+        -h --help Show usage and Options.
+        --version Show versions.  
 
 
 Examples
