@@ -37,6 +37,7 @@ import datetime
 
 import sys
 import subprocess
+import re
 from docopt import docopt
 from database import Database
 from page import Page
@@ -171,8 +172,10 @@ def crawtext(docopt_args):
 		else:
 			#defaut is results export
 			argv[4] = "results"
-
+		outfile = re.split("\.", argv[7])[0]
 		subprocess.call(argv)
+		subprocess.call(['zip', outfile+".zip", argv[7]])
+
 		return
 		#
 	else:
