@@ -33,6 +33,7 @@ class Page():
 		self.req = None
 		self.src = ""
 		self.status_code = 0
+		self.domain = None
 		
 	def check(self):
 		'''Bool: check the format of the next url compared to curr url'''
@@ -129,7 +130,7 @@ class Page():
 								"query": self.query,
 								"domain": get_tld(self.url),
 								"outlinks": list(self.outlinks),
-								"backlinks":[n for n in self.outlinks if n == self.url],
+								"backlinks":[{"url":n, "domain":get_tld(n)} for n in self.outlinks if n == self.url],
 								"texte": self.article.cleaned_text,
 								"title": self.article.title,
 								"meta_description":bs(self.article.meta_description).text,
