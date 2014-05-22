@@ -24,18 +24,14 @@ Automatic install on Debian
 --------------------
 A bash file is provided to install all dependencies on Debian Based distribution  run``./install.sh`` will create a virtual environnemet to setup crawtext dependencies
 
- | Note: if you see a MAX RETRY ERROR on running the virtualenv see bugtrack of latest Ubuntu version on this specific problem and how to solve it
-
 Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefully the way to install MongoDB from debian packages sources or 10gen packages. The different versions  might not be compatible. 
 See in the "Read More" section the links to the install pages of these softwares.
 
 MongoDB requires to have an existing /data/db directory .
 
- | Note: to install defaut directory required by mongo ``sudo mkdir /data/db``
+ | Note: to install mongo a defaut directory is required by mongo so you have to create it ``sudo mkdir /data/db``
 
-
- | Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
-
+ 
 Manual install on Debian
 ------------------
 
@@ -58,12 +54,12 @@ Install the dependencies
     sudo pip install tld
 
 Install [goose] <https://github.com/grangier/python-goose>    
-    
+::    
     $git clone https://github.com/grangier/python-goose.git
     $ cd python-goose
     $ sudo pip install -r requirements.txt
     $ sudo python setup.py install
-    
+
     
 Manual install on MAC
 -----------------------------
@@ -119,15 +115,13 @@ Common problems
 + Crawtext failed to connect to mongodb
  If crawtext doesn't start try launch once the daemon of mongo by typing ``sudo mongod`` and then launch crawtext you can close terminal after the crawl completed. If it still blocks you can try a ``sudo mongod --repair``
 
+| Note: if you see a MAX RETRY ERROR on running the virtualenv it is caused by the latest update of Ubuntu version. Please send a pull request with your error
 
 
 Next developpement steps
 -----------------
-+ Store not pertinent url into logs and filter crawl to ignore non pertinent url
-+ Export option in command line
 + SH Script to automate crawl as specific date
-+ Extended options for query NOT + regex!!!!
-+ Multithreading
++ Extended options for query
 
 Usage
 =====
