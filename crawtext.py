@@ -152,7 +152,6 @@ def crawtext(docopt_args):
 		return
 
 	elif docopt_args['export']:
-		print docopt_args
 		argv = ['mongoexport', '-d', docopt_args['<project>'], '-c', 'results', '--jsonArray', '-o', 'report.json']
 		if docopt_args['--o']:
 			print docopt_args['--o']
