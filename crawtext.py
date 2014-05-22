@@ -10,8 +10,8 @@ Usage:
 	crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
 	crawtext.py restart <project> 
 	crawtext.py stop <project> 
-	crawtext.py report <project> [--email=<email>]
-	crawtext.py export (results|sources|<collection>logs|queue)  <project> [--o=<format>]
+	crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
+	crawtext.py export (results|sources|logs|queue)  <project> [--o=<outfile>]
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
@@ -20,7 +20,7 @@ Options:
 	[discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
 	[restart] restart the current process
 	[stop] clean the current process
-	[report] send a email with the data stored in the specified project database 
+	[report] simple stats on database send by mail OR stored in file OR printed in cmd
 	[export] export the specified <collection> to specified format <JSON/CSV>
 	--file Complete path of the sourcefile.
 	--o Outfile format for export
@@ -36,12 +36,13 @@ import __future__
 import datetime
 
 import sys
+import subprocess
 from docopt import docopt
 from database import Database
 from page import Page
 from crawtext_options import Discovery, Sourcing
-from report import Report, send_report
-from export import Export
+from report import Report
+#from export import Export
 from pymongo import errors as mongo_err
 
 def crawler(docopt_args):
@@ -67,7 +68,7 @@ def crawler(docopt_args):
 					if p.outlinks is not None:
 						try:
 							for n_url in p.outlinks:
-								if n_url not in db.queue.find({"url":n_url}) or n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
+								if n_url is not None or  n_url not in db.queue.find({"url":n_url}) or n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
 									# Checking correct url before is problematic
 									# next_p = Page(n_url, query)
 									# if next_p.clean_url(p.url) is not None:
@@ -149,10 +150,31 @@ def crawtext(docopt_args):
 	elif docopt_args['report']:
 		Report(docopt_args)
 		return
+
 	elif docopt_args['export']:
-		e = Export(docopt_args)
+		print docopt_args
+		argv = ['mongoexport', '-d', docopt_args['<project>'], '-c', 'results', '--jsonArray', '-o', 'report.json']
+		if docopt_args['--o']:
+			print docopt_args['--o']
+			argv[7] = docopt_args['--o']
+		else:
+			argv[7] = "EXPORT_"+docopt_args['<project>']+".json"
+		if docopt_args['sources']:	
+			argv[4] = "sources"
+			
+		elif docopt_args['logs']:	
+			argv[4] = "log"
+			
+		elif docopt_args['queue']:
+			argv[4] = "queue"
+			
+		else:
+			#defaut is results export
+			argv[4] = "results"
+
+		subprocess.call(argv)
 		return
-		#subprocess.call('mongoexport')
+		#
 	else:
 		print "No command supplied, please check command line usage and options."
 		return sys.exit() 
