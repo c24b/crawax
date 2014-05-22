@@ -305,8 +305,9 @@ Crawtext stores also the complete list of url parsed, the type of error encounte
 
 Export the results
 -----------------------------
-Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY)
-Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold the name of the project i.e. the **database name**]
+Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY) and compressed to intgrate Crawtext manager
+
+Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold EXPORT_ + the name of the project i.e. the **database name**] and will be stored in zip in the current directory
 
 + Export to JSON file:
 Mongo provides a shell command to export the collection data into **json** : 
