@@ -119,7 +119,7 @@ Common problems
 
 
 Next developpement steps
------------------
+-----------------------------
 + SH Script to automate crawl as specific date
 + Extended options for query
 
@@ -209,12 +209,15 @@ With a inital discovery you can crawl again the sources
     python crawtext.py alguesVertes crawl "Algues Vertes"
 
 Access the results
-===========================
+-----------------------------
 Crawtext creates a MongoDb database that corresponds to your **project name**
-This database contains 3 collections:
+This database contains 3 main collections:
+::
 + sources 
 + results 
 + logs (error info)
+
+
 
 Query the results
 -----------------------------
@@ -237,10 +240,6 @@ Reporting on the current process
 Crawtext provides a simple method to see running or pause processed that can be send by mail, wrote in file or simply printing out in the shell
 See report option on the command shell
 
-Export the results
------------------------------
-Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY)
-Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold the name of the project i.e. the database name]
 
 Data Formats
 -----------------------------
@@ -308,6 +307,9 @@ Crawtext stores also the complete list of url parsed, the type of error encounte
 
 Export the results
 -----------------------------
+Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY)
+Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold the name of the project i.e. the **database name**]
+
 + Export to JSON file:
 Mongo provides a shell command to export the collection data into **json** : 
 ::
@@ -329,4 +331,3 @@ Read also
 + MongoDB query tutorial page <http://docs.mongodb.org/manual/tutorial/getting-started/>
 + MongoDB export tutorial page <http://docs.mongodb.org/v2.2/reference/mongoexport/>
 + LXML install page <http://lxml.de/installation.html>
->>>>>>> ab06f831622c18d24448e854b0c84fbcbc678faf
