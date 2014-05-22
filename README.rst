@@ -1,15 +1,4 @@
-docstring: documentation for your API endpoints
-===============================================
-
-.. image:: https://secure.travis-ci.org/daniyalzade/docstring.png
-        :target: https://secure.travis-ci.org/daniyalzade/docstring
-
-
-<<<<<<< HEAD
-Decorators for auto-generating HTML response for API endpoints
-
-Installation
-------------
+Description
 =======
 This program allows one to automatically get search content on the web,
 starting from words to search ("bee", "dans le cochon tout est bon", "Green Alga OR escheria", "procrastination AND useful") 
@@ -23,17 +12,19 @@ Dependencies
 - ``python-goose`` <https://github.com/grangier/python-goose.git>
 - ``pymongo``
 - ``docopt``
+- ``python-requests``
 
 See requirements.txt for the complete list of dependencies
->>>>>>> ab06f831622c18d24448e854b0c84fbcbc678faf
 
-To install requests, simply: ::
-
-<<<<<<< HEAD
-    $ pip install docstring
+INSTALLATION
 =======
 The first two steps are designed for a Debian based distribution as they involve installing packages (MongoDB and LXML) with apt-get. 
 
+Automatic install on Debian
+--------------------
+A bash file is provided to install all dependencies on Debian Based distribution  run``./install.sh`` will create a virtual environnemet to setup crawtext dependencies
+
+ | Note: if you see a MAX RETRY ERROR on running the virtualenv see bugtrack of latest Ubuntu version on this specific problem and how to solve it
 
 Multiples repository for Mongodb are available for Debian based distribution and not compatible. Choose carefully the way to install MongoDB from debian packages sources or 10gen packages. The different versions  might not be compatible. 
 See in the "Read More" section the links to the install pages of these softwares.
@@ -42,21 +33,8 @@ MongoDB requires to have an existing /data/db directory .
 
  | Note: to install defaut directory required by mongo ``sudo mkdir /data/db``
 
->>>>>>> ab06f831622c18d24448e854b0c84fbcbc678faf
 
-Source
-------
-
-You can see the code `here <https://github.com/daniyalzade/docstring>`_
-
-<<<<<<< HEAD
-TODO
-----
-* Figure out if we can remove the dependency to django and tornado
-* Make sure that we can get the API permissions to work
-* Add entries for read the docs
-=======
-Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
+ | Note: if install.sh doesn't work try to change the file permission with ``sudo chmod 750 install.sh``
 
 Manual install on Debian
 ------------------
@@ -75,13 +53,17 @@ Install crawtext
 
 Install the dependencies    
 ::    
-    $cd crawtext
+    sudo pip install pymongo
+    sudo pip install docopt
+    sudo pip install tld
+
+Install [goose] <https://github.com/grangier/python-goose>    
+    
     $git clone https://github.com/grangier/python-goose.git
-    $cd python-goose
-    $sudo pip install -r requirements.txt
-    $python setup.py install
-    $cd ..
-    $sudo pip install -r requirements.txt
+    $ cd python-goose
+    $ sudo pip install -r requirements.txt
+    $ sudo python setup.py install
+    
     
 Manual install on MAC
 -----------------------------
@@ -188,27 +170,31 @@ For more informations on specific options and utilities you can type
 
 .. code:: python
 
-    """Usage:
-        crawtext.py <project> crawl <query> 
-        crawtext.py <project> discover <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>] [-v]
-        crawtext.py <project> report [--email=<email>]
-        crawtext.py <project> restart 
-        crawtext.py <project> stop
-        crawtext.py (-h | --help)
-        crawtext.py --version
+"""
+Usage:
+    crawtext.py crawl <project> <query> 
+    crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+    crawtext.py restart <project> 
+    crawtext.py stop <project> 
+    crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
+    crawtext.py export (results|sources|logs|queue)  <project> [--o=<outfile>]
+    crawtext.py (-h | --help)
+    crawtext.py --version
 
-    Options:
-        crawl launch a crawl on a specific query using the existing source database
-        discover launch a crawl on a specific query using a textfile AND/OR a search query on Bing
-        restart restart the current process
-        stop clean the current process
-        report send a email with the data stored in the specified project database
-        --file Complete path of the sourcefile.
-        --key  Bing API Key for SearchNY.
-        --mail one or more emails separated by a coma
-        -h --help Show usage and Options.
-        --version Show versions.  
-
+Options:
+    [crawl] launch a crawl on a specific query using the existing source database
+    [discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
+    [restart] restart the current process
+    [stop] clean the current process
+    [report] simple stats on database send by mail OR stored in file OR printed in cmd
+    [export] export the specified <collection> to specified format <JSON/CSV>
+    --file Complete path of the sourcefile.
+    --o Outfile format for export
+    --key  Bing API Key for SearchNY.
+    --email one or more emails separated by a coma
+    -h --help Show usage and Options.
+    --version Show versions.  
+"""
 
 
 Examples
@@ -252,8 +238,17 @@ count the results:
 For more search and inspect options see the tutorial on MongoDb:
 [MongoDB query page]<http://docs.mongodb.org/manual/tutorial/getting-started/>
 
+Reporting on the current process
+-----------------------------
+Crawtext provides a simple method to see running or pause processed that can be send by mail, wrote in file or simply printing out in the shell
+See report option on the command shell
 
-Format of the Data
+Export the results
+-----------------------------
+Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY)
+Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold the name of the project i.e. the database name]
+
+Data Formats
 -----------------------------
 The data are stored in mongodb following this format
 
