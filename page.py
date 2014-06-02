@@ -125,11 +125,12 @@ class Page():
 			if self.filter() is True:
 				self.outlinks = set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})])
 				#print self.outlinks
+
 				self.info = {	
 								"url":self.url,
 								"query": self.query,
 								"domain": get_tld(self.url),
-								"outlinks": list(self.outlinks),
+								"outlinks": [{"url":n, "domain":get_tld(n)} for n in self.outlinks if n is not None],
 								"backlinks":[{"url":n, "domain":get_tld(n)} for n in self.outlinks if n == self.url],
 								"texte": self.article.cleaned_text,
 								"title": self.article.title,
@@ -142,27 +143,29 @@ class Page():
 				self.status_code = 0
 				return False	
 		except Exception, e:
-			print e
+			#print e
 			self.error_type = str(e)
 			self.status_code = -1
 					
 	def filter(self):
 		'''Bool Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
-		self.query = re.sub('-', ' ', self.query) 
-		if 'OR' in self.query:
-			for each in self.query.split('OR'):
-				query4re = each.lower().replace(' ', '.*')
-				if re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE):
-					return True
+		if self.article is not None:
+			self.query = re.sub('-', ' ', self.query) 
+			if 'OR' in self.query:
+				for each in self.query.split('OR'):
+					query4re = each.lower().replace(' ', '.*')
+					if re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE):
+						return True
 
-		elif 'AND' in self.query:
-			query4re = self.query.lower().replace(' AND ', '.*').replace(' ', '.*')
-			return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
-		#here add NOT operator
+			elif 'AND' in self.query:
+				query4re = self.query.lower().replace(' AND ', '.*').replace(' ', '.*')
+				return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
+			#here add NOT operator
+			else:
+				query4re = self.query.lower().replace(' ', '.*')
+				return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 		else:
-			query4re = self.query.lower().replace(' ', '.*')
-			return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
-			 	
+			return False	 	
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''			
 		try:
