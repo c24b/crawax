@@ -104,6 +104,7 @@ def crawler(docopt_args):
 
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
+	start = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 	if docopt_args['discover'] is True:
 		print "Running discovery mode ..."
 		if docopt_args['<query>'] is not None:
@@ -111,7 +112,7 @@ def crawtext(docopt_args):
 			Sourcing(db_name=docopt_args['<project>'])
 			crawler(docopt_args)
 			#s.db.queue.drop()
-			return "Discovery completed"
+			return "Discovery completed and report Ok"
 		else:
 			print "Discovery mode needs a query to search. Please check your arguments and try again"
 			print docopt_args['help']
@@ -158,7 +159,7 @@ def crawtext(docopt_args):
 		if docopt_args['--o']:
 			argv[7] = docopt_args['--o']
 		else:
-			argv[7] = "EXPORT_"+docopt_args['<project>']+".json"
+			argv[7] = "EXPORT_"+docopt_args['<project>']+"_"+start+"_.json"
 		
 		if docopt_args['sources']:	
 			argv[4] = "sources"
@@ -172,6 +173,7 @@ def crawtext(docopt_args):
 		else:
 			#defaut is results export
 			argv[4] = "results"
+			argv[7] = "EXPORT_"+docopt_args['<project>']+"_"+start+"_.json"
 		outfile = re.split("\.", argv[7])[0]
 		subprocess.call(argv)
 		subprocess.call(['zip', outfile+".zip", argv[7]])
