@@ -8,30 +8,63 @@ from pymongo import errors
 class Database(object):
 	'''Database creation''' 
 	def __init__(self, database_name):
-		self.name = database_name
-		client = MongoClient('mongodb://localhost,localhost:27017')
-		self.db = client[self.name]
-		self.results = self.db['results']
-		self.queue = self.db['queue'] 
-		self.log = self.db['log']
-		self.sources = self.db['sources']
-		self.jobs = self.db['jobs']
+		self.db_name = database_name
+		self.client = MongoClient('mongodb://localhost,localhost:27017')
+		self.db = self.client[self.db_name]
+		#self.results = self.db['results']
+		#self.queue = self.db['queue'] 
+		#self.log = self.db['log']
+		#self.sources = self.db['sources']
+		#self.jobs = self.db['jobs']
 		#self.db.x = self.db[x]
 		
 	def __repr__(self, database_name):	
+		print "Using database: %s" %self.client[database_name]
+		return self.client[database_name]
+	def __getitem__(self, item):
+		return self.db[str(item)].find_one()
+
+	def use_db(self, name):
+		return self.client[str(name)]
+
+	def show_dbs(self):
+		return self.client.database_names()
+	
+	def show_coll(self):
+		print "using collection %s in DB : %s" %(self.name, self.db_name)
 		return self.name
-		
+
+		#return self.db.collection_names()
+	def show_coll_items(self, coll_name):
+		return [n for n in self.db[str(coll_name)].find()]	
+	
 	def create_tables(self):
 		self.results = self.db['results']
 		self.queue = self.db['queue'] 
 		self.log = self.db['log']
 		self.sources = self.db['sources']
-		return self
+		print "Creating coll",  [n for n in self.db.collection_names()]
+		return [n for n in self.db.collection_names()]
 	
 	def create_table(self, name):
 		self.name= self.db[name]
-		return self.db[name]
+		print "coll : %s has been created in db:%s " %(self.name, self.db_name)
+		return self.name
 	
+	def drop(self, type, name):
+		if type == "collection":
+			return self.db[str(name)].drop()
+		elif type == "database":
+			return self.client.drop_database(str(name))
+		else:
+			print "Unknown Type"
+			return False
+	def drop_all_dbs():
+		'''be carefull'''
+		for n in self.show_dbs():
+			self.use_db(n)
+			self.drop("database", n)
+
 	def stats(self):
 		'''Output the current stats of database in Terminal'''
 		title = "===STATS===\n"
