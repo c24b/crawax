@@ -159,9 +159,12 @@ Command options
 -----------------------------
 For more informations on specific options and utilities you can type
 ::
-    crawtext.py -h
+    python crawtext.py -h
 
-
+| as in a normal command line interface you have to be inside the crawtext directory and execute it with python so to run the code you have to type::
+    python crawtext.py
+    with the differents options listed below
+     
 .. code:: python
 
     Usage:
