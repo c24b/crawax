@@ -305,7 +305,7 @@ Crawtext stores also the complete list of url parsed, the type of error encounte
 
 Export the results
 -----------------------------
-Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY) and compressed to intgrate Crawtext manager
+Crawtext provides a simple method to export results stored in database in JSON valid format (a proper JSON ARRAY) and compressed to be integrated into the Cortext manager available here <http://manager.cortext.net/>
 
 Simply use crawtext.py export **/the collection name: sources or results or logs/*** . You can specify the filename format with --o option [By defaut it will hold EXPORT_ + the name of the project i.e. the **database name**] and will be stored in zip in the current directory
 
