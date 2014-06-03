@@ -6,26 +6,27 @@ Description:
 A simple crawler in command line.
 
 Usage:
-	crawtext.py crawl <project> <query> 
-	crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
+	crawtext.py crawl <project> [<query>] [(-f <filename>|--file=<filename>) (-k <key> |--key=<key>)]
+	crawtext.py start <project> [<query>] [(-f <filename>|--file=<filename>) | (-k <key>|--key=<key>) | (-f <filename>|--file=<filename>) (-k <key>|--key=<key>)]
 	crawtext.py restart <project> 
 	crawtext.py stop <project> 
-	crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
-	crawtext.py export [results|sources|logs|queue]  <project> [--o=<outfile>]
+	crawtext.py report <project> [((--email=<email>| -e <email>) -u <user> -p <passwd>)| (-o <outfile> |--o=<outfile>)]
+	crawtext.py export [results|sources|logs|queue]  <project> [(-o <outfile> |--o=<outfile>)] 
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
 Options:
-	[crawl] launch a crawl on a specific query using the existing source database
-	[discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
-	[restart] restart the current process
-	[stop] clean the current process
-	[report] simple stats on database send by mail OR stored in file OR printed in cmd
-	[export] export the specified <collection> to specified format <JSON/CSV>
-	--file Complete path of the sourcefile.
-	--o Outfile format for export
-	--key  Bing API Key for SearchNY.
-	--email one or more emails separated by a coma
+	[crawl] launch a crawl
+	[restart] restart the crawl
+	[stop] stop the crawl
+	[report] report on current crawl sent by <mail> OR stored in <file> OR printed out
+	[export] export the specified <collection> to a JSON file and then a ZIP file
+	-f --file Complete path of the sourcefile.
+	-o --o Outfile format for export
+	-k --key  Bing API Key for SearchNY.
+	-e --email one or more emails separated by a coma
+	-u gmail adress account to send report
+	-p password of gmail account
 	-h --help Show usage and Options.
 	--version Show versions.  
 '''
@@ -41,16 +42,16 @@ import re
 from docopt import docopt
 from database import Database
 from page import Page
-from crawtext_options import Discovery, Sourcing
+from crawtext_options import Discovery, Sourcing, Job
 from report import Report
-#from export import Export
+from export import Export
 from pymongo import errors as mongo_err
 
 def crawler(docopt_args):
 	start = datetime.datetime.now()
 	db_name = docopt_args['<project>']
 	query = docopt_args['<query>']
-	'''the main consumer from queue insert into results or log'''
+	
 	db = Database(db_name)
 	db.create_tables()
 	while db.queue.count > 0:
@@ -78,22 +79,18 @@ def crawler(docopt_args):
 							db.log.udpate({"url":url, "error_type": "pymongo error inserting outlinks", "query": self.query, "status":False},{'$push': {"date": datetime.datetime.today()}}, upsert=True)
 				elif p.error_type != 0:
 					''' if the page is not relevant do not store in db'''
-					db.log.update(p.bad_status(),{'$push': {"date": datetime.datetime.today()}}, upsert=True)
+					db.log.update(p.bad_status(),{"date": {'$push': datetime.datetime.today()}}, upsert=True)
 				else:
 					continue
 
 			db.queue.remove({"url": url})
-			# print "En traitement", self.db.queue.count()
-			# print "Resultats", self.db.results.count()
-			# print "Erreur", self.db.log.count()
 			if db.queue.count() == 0:
 				print db.stats()
-				#unschedule(send_report, docopt_args)
 				break
 			
 		if db.queue.count() == 0:
 			print db.stats()
-			#unschedule(send_report, docopt_args)
+			
 			break
 		
 
@@ -104,15 +101,18 @@ def crawler(docopt_args):
 
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
-	start = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
-	if docopt_args['discover'] is True:
+	if docopt_args['crawl'] is True:
+		Job(docopt_args)
+
+	elif docopt_args['discover'] is True:
 		print "Running discovery mode ..."
 		if docopt_args['<query>'] is not None:
 			Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
 			Sourcing(db_name=docopt_args['<project>'])
 			crawler(docopt_args)
 			#s.db.queue.drop()
-			return "Discovery completed and report Ok"
+			Export(docopt_args)
+			return "Discovery completed !"
 		else:
 			print "Discovery mode needs a query to search. Please check your arguments and try again"
 			print docopt_args['help']
@@ -124,7 +124,11 @@ def crawtext(docopt_args):
 	elif docopt_args['crawl'] is True:
 		s = Sourcing(db_name=docopt_args['<project>'])
 		crawler(docopt_args)
-		return "Sourcing completed"
+		print "sourcing completed.\nExporting"
+		Export(docopt_args)
+		print "Export ok!>>>>>>>"
+		Report(docopt_args)
+		return True
 		#crawler(docopt_args)
 		# if docopt_args['--repeat']:
 			# schedule(crawler, docopt_args)
@@ -133,7 +137,7 @@ def crawtext(docopt_args):
 		db = Database(docopt_args['<project>'])
 		db.queue.drop()
 		# unschedule(docopt_args)
-		print ">>>Current queue is now empty. Process is stopped"
+		print ">>>Current queue is now empty. Process on project %s is stopped" %docopt_args['<project>']
 		print db.stats()
 		return
 	elif docopt_args['restart']:
@@ -141,50 +145,33 @@ def crawtext(docopt_args):
 		db = Database(docopt_args['<project>'])
 		
 		if db.queue.count() <=0:
-			print ">>>No data in current queue. Process can't be restarted. Please use crawl or discovery mode"
+			print ">>>No data in current queue. Crawlin again with sourcefile"
+
+			print "\nReloading initial config with sources data"
+			s = Sourcing(db_name=docopt_args['<project>'])
+			crawler(docopt_args)
 			print db.stats()
 			return
 		else:
-			print ">>>Restarting..."
+			print ">>>Restarting process on %s..." %(docopt_args['<project>'])
 			crawler(docopt_args)
 		#schedule(crawler, docopt_args)
 		return 
 	elif docopt_args['report']:
+		print ">>>> Stats report on %s" %docopt_args['<project>']
 		Report(docopt_args)
 		return
 
 	elif docopt_args['export']:
-		print ">>>Exporting"
-		argv = ['mongoexport', '-d', docopt_args['<project>'], '-c', 'results', '--jsonArray', '-o', 'report.json']
-		if docopt_args['--o']:
-			argv[7] = docopt_args['--o']
-		else:
-			argv[7] = "EXPORT_"+docopt_args['<project>']+"_"+start+"_.json"
-		
-		if docopt_args['sources']:	
-			argv[4] = "sources"
-			
-		elif docopt_args['logs']:	
-			argv[4] = "log"
-			
-		elif docopt_args['queue']:
-			argv[4] = "queue"
-			
-		else:
-			#defaut is results export
-			argv[4] = "results"
-			argv[7] = "EXPORT_"+docopt_args['<project>']+"_"+start+"_.json"
-		outfile = re.split("\.", argv[7])[0]
-		subprocess.call(argv)
-		subprocess.call(['zip', outfile+".zip", argv[7]])
-
+		Export(docopt_args)
 		return
-		#
+		
 	else:
 		print "No command supplied, please check command line usage and options."
 		return sys.exit() 
 
 if __name__ == "__main__":
+	
 	crawtext(docopt(__doc__))
 	sys.exit()
 
