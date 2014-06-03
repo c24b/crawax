@@ -17,18 +17,18 @@ class Discovery():
 		self.send_to_sources(self.db, query)
 		self.send_to_queue(self.db)
 
-	def send_to_sources(self, db, query):	
+	def send_to_sources(self):	
 		for n in self.seeds:
 			#first send to sources
 			#db.sources.insert({"url":n, "date": datetime.datetime.today(), "mode":"discovery"} for n in self.seeds if n is not None)
-			db.sources.update({"url":n, "mode":"discovery"}, {"$push": {"$date":datetime.datetime.today()}}, upsert=True)
-		return db
+			self.db.sources.update({"url":n, "mode":"discovery"}, {"$push": {"$date":datetime.datetime.today()}}, upsert=True)
+		return self.db
 
-	def send_to_queue(self, db):
-		sources_queue = [{"url":url} for url in db.sources.distinct("url")]
+	def send_to_queue(self):
+		sources_queue = [{"url":url} for url in self.db.sources.distinct("url")]
 		if len(sources_queue) != 0:
 			#db.sources.update([{"url":n}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
-			db.queue.insert(sources_queue)
+			self.db.queue.insert(sources_queue)
 		return db
 	def get_bing(self):
 		''' Method to extract results from BING API (Limited to 5000 req/month). ''' 
@@ -50,6 +50,7 @@ class Discovery():
 			print len(self.seeds),"results from Bing API"
 			return True
 		except Exception as e:
+			self.status_code = -1
 			self.error_type = "Error fetching results from BING API, check your credentials. May not exceed the 5000req/month limit (%s)" %e.args
 			return False
 

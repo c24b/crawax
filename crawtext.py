@@ -7,7 +7,6 @@ A simple crawler in command line.
 
 Usage:
 	crawtext.py crawl <project> [<query>] [(-f <filename>|--file=<filename>) (-k <key> |--key=<key>)]
-	crawtext.py start <project> [<query>] [(-f <filename>|--file=<filename>) | (-k <key>|--key=<key>) | (-f <filename>|--file=<filename>) (-k <key>|--key=<key>)]
 	crawtext.py restart <project> 
 	crawtext.py stop <project> 
 	crawtext.py report <project> [((--email=<email>| -e <email>) -u <user> -p <passwd>)| (-o <outfile> |--o=<outfile>)]
@@ -20,7 +19,7 @@ Options:
 	[restart] restart the crawl
 	[stop] stop the crawl
 	[report] report on current crawl sent by <mail> OR stored in <file> OR printed out
-	[export] export the specified <collection> to a JSON file and then a ZIP file
+	[export] export the specified <collection> into a JSON file and then into a ZIP file
 	-f --file Complete path of the sourcefile.
 	-o --o Outfile format for export
 	-k --key  Bing API Key for SearchNY.
@@ -41,6 +40,7 @@ import subprocess
 import re
 from docopt import docopt
 from database import Database
+from mongo_manager import TaskManager
 from page import Page
 from crawtext_options import Discovery, Sourcing, Job
 from report import Report
@@ -89,8 +89,7 @@ def crawler(docopt_args):
 				break
 			
 		if db.queue.count() == 0:
-			print db.stats()
-			
+			print db.stats()		
 			break
 		
 
@@ -101,10 +100,10 @@ def crawler(docopt_args):
 
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
-	if docopt_args['crawl'] is True:
-		Job(docopt_args)
+	# if docopt_args['crawl'] is True:
+	# 	TaskManager(docopt_args)
 
-	elif docopt_args['discover'] is True:
+	if docopt_args['discover'] is True:
 		print "Running discovery mode ..."
 		if docopt_args['<query>'] is not None:
 			Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
