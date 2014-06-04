@@ -7,6 +7,7 @@ A simple crawler in command line.
 
 Usage:
 	crawtext.py crawl <project> [<query>] [(-f <filename>|--file=<filename>) (-k <key> |--key=<key>)]
+	crawtext.py remove <project> [...]
 	crawtext.py restart <project> 
 	crawtext.py stop <project> 
 	crawtext.py report <project> [((--email=<email>| -e <email>) -u <user> -p <passwd>)| (-o <outfile> |--o=<outfile>)]

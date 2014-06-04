@@ -13,13 +13,13 @@ class TaskManager():
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection =self.task_db.create_coll('tasks')
 		self.doc = self.collection.find_one({"project":docopt_args['<project>']})
-				
+		self.map(docopt_args)		
 		#self.config()
 		
-		self.run(docopt_args)
+		self.run()
 
-	def run(self, docopt_args):
-		if docopt_args['<project>']:
+	def run(self):
+		if self.doc['<project>']:
 			if self.doc is None:
 				if docopt_args['<filename>']:
 					self.map(docopt_args)
@@ -56,6 +56,7 @@ class TaskManager():
 						print "Type python crawtext.py --help to see basic instructions"
 						return False
 	def map(self, docopt_args):
+		'''mapping console param to data'''
 		self.data = {	"project":docopt_args['<project>'],
 						"query":[str(docopt_args['<query>']).decode("utf8")],
 						"file":[str(docopt_args['<filename>']).decode("utf8")],
@@ -65,8 +66,12 @@ class TaskManager():
 						"status": "Created",
 					
 					}
-		return self
-
+		return self.data
+	def find_project(self):
+		self.map()
+		print self.data["project"]
+		self.collection.find({	"project":self.data["project"]})
+		
 	def create(self):
 		'''Creating a new project into Task Manager'''
 		print "Creating a New Task"
@@ -104,7 +109,12 @@ class TaskManager():
 		return self
 	def remove(self):
 		'''Remove the Task'''
-		self.collection.remove({"project":self.project})
+		self.map()
+		self.project = self.doc["project"]
+		self.doc = self.collection.find({"project":self.project})
+		for n in self.doc:
+			print n
+			# self.collection.remove({"project":self.project})
 		return self
 
 class Dispatch():
