@@ -4,46 +4,63 @@
 from database import Database
 import datetime
 import requests
+
 TASK_MANAGER_NAME = "manager"
 
 class TaskManager():
 	def __init__(self, docopt_args):
 		'''Initializing projet with parameters stored in a projet database'''
-		self.db = Database(TASK_MANAGER_NAME)
-		self.collection =self.db.create_coll('tasks')
-
-		self.map(docopt_args)		
-		#self.config()
+		self.task_db = Database(TASK_MANAGER_NAME)
+		self.collection =self.task_db.create_coll('tasks')
 		self.doc = self.collection.find_one({"project":docopt_args['<project>']})
-		self.run()
+				
+		#self.config()
+		
+		self.run(docopt_args)
 
 	def run(self, docopt_args):
-		if (docopt_args['<filename>'] or docopt_args['<key>']) or docopt_args['<query>']:
-				if doc is None:
+		if docopt_args['<project>']:
+			if self.doc is None:
+				if docopt_args['<filename>']:
+					self.map(docopt_args)
 					print "Creating a new task for project \"%s\"" %docopt_args['<project>']
 					self.collection.insert(self.data)
-					
+					return self
+				elif docopt_args['<key>']:
+					self.map(docopt_args)
+					print "Creating a new task for project \"%s\"" %docopt_args['<project>']
+					self.collection.insert(self.data)
+					return self
 				else:
-					print "Task for \"%s\" project already exist" %docopt_args['<project>'] 
-					print ">>>Updating configuration"
+					print "No project configuration for \"%s\" has been found! \nPlease start your new project adding an API Key OR/AND a file path." %docopt_args['<project>']
+					print "Type python crawtext.py --help to see basic instructions"
+					return False
+			else:
+				print "Task for \"%s\" project already exist" %docopt_args['<project>'] 
+				if docopt_args['<filename>']:			
+					print "Adding new configuration for project :%s" %docopt_args['<project>'] 
 					self.update()
-					#self.collection.update({"project": docopt_args['<project>']},{"$inc": {"data.nb_crawl": 1}}, True)
-					
-			elif docopt_args['<project>']:
-				if doc is not None:
-					print "Activating the task"
-					self.activate()
-					#self.update()
+					return self
+				elif docopt_args['<key>']:
+					print "Adding new configuration for project :%s" %docopt_args['<project>'] 
+					self.update()
+					return self
 				else:
-					print "No project \"%s\" found! \nPlease start your new project adding an API Key OR/AND a file path." %docopt_args['<project>']
-					print "Type python crawtext.py --help to see basic instructions" 	 	
-			
+					if self.doc["key"] or self.doc["filename"]:
+						print "Reactivate the task with last configuration"
+						print self.doc
+						self.activate()
+						return self
+					else:
+						print "No project configuration for \"%s\" has been found! \nPlease start your new project adding an API Key OR/AND a file path." %docopt_args['<project>']
+						print "Type python crawtext.py --help to see basic instructions"
+						return False
 	def map(self, docopt_args):
 		self.data = {	"project":docopt_args['<project>'],
 						"query":[str(docopt_args['<query>']).decode("utf8")],
 						"file":[str(docopt_args['<filename>']).decode("utf8")],
 						"key": [str(docopt_args['<key>']).decode("utf8")],
-						"date": [datetime.datetime.now()],
+						"date": [datetime.datetime.today()],
 						"nb_crawl": 0,
 						"status": "Created",
 					
@@ -60,30 +77,38 @@ class TaskManager():
 	
 	def update(self):
 		'''Updating existing project into Task Manager'''
-		self.doc = self.collection.find_one({"project": self.data["project"]})
+		self.map()
 		self.id = self.doc["_id"]			
 		if self.data["query"] != self.doc["query"]:	
 			self.collection.update({"_id":self.id}, {"$push":{"query":self.data["query"]}}, True)
 		elif self.data["key"] != self.doc["query"]:
-			print self.data["key"]
 			self.collection.update({"_id":self.id}, {"$push":{"key":self.data["key"]}}, True)
 		elif self.data["file"] != self.doc["file"]:
-			print self.data["file"]
 			self.collection.update({"_id":self.id}, {"$push":{"filename":self.data["file"]}}, True)
 		else:
 			pass
 		self.activate()
-		print "updated!"
 		return self
 	
 	def activate(self):
 		'''Activate the Task'''
-		self.collection.update({"_id":self.id}, {"$push":{"date":datetime.datetime.now()}}, True)
+		self.id = self.doc["_id"]
+		self.collection.update({"_id":self.id}, {"$push":{"date":datetime.datetime.today()}}, True)
 		self.collection.update({"_id":self.id}, {"$inc":{"nb_crawl":1}}, True)
-		self.collection.update({"_id":self.id}, {"$set":{"status":"Activated"}}, True)
-		return
+		self.collection.update({"_id":self.id}, {"$set":{"status":"Activate"}}, True)
+		return self
 
 	def deactivate(self):
 		'''Deactivate the Task'''
 		self.collection.update({"_id":self.id}, {"$set":{"status":"Deactivated"}}, True)
-		return
+		return self
+	def remove(self):
+		'''Remove the Task'''
+		self.collection.remove({"project":self.project})
+		return self
+
+class Dispatch():
+	def __init__(self):
+		self.task_db = Database(TASK_MANAGER_NAME)
+		self.collection =self.task_db.create_coll('tasks')
+		self.doc = self.collection.find_one({"project":docopt_args['<project>']})

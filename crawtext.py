@@ -40,9 +40,10 @@ import subprocess
 import re
 from docopt import docopt
 from database import Database
-from mongo_manager import TaskManager
 from page import Page
-from crawtext_options import Discovery, Sourcing, Job
+from crawtext_options import Discovery, Sourcing
+from mongo_manager import TaskManager
+
 from report import Report
 from export import Export
 from pymongo import errors as mongo_err
@@ -53,7 +54,7 @@ def crawler(docopt_args):
 	query = docopt_args['<query>']
 	
 	db = Database(db_name)
-	db.create_tables()
+	db.create_colls()
 	while db.queue.count > 0:
 
 		print "beginning crawl"
@@ -100,45 +101,53 @@ def crawler(docopt_args):
 
 def crawtext(docopt_args):
 	''' main crawtext run by command line option '''
+	task = docopt_args['<project>']
+	if docopt_args['crawl'] is True and docopt_args['<project>'] is not None:
+		t = TaskManager(docopt_args)
+		print t.doc
+	elif docopt_args['remove'] is True and docopt_args['<project>'] is not None:
+		t = TaskManager(docopt_args)
+		t.remove()
+		#print t.doc["date"][-1]
+	# if docopt_args['discover'] is True:
+	# 	print "Running discovery mode ..."
+	# 	if docopt_args['<query>'] is not None:
+	# 		Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
+	# 		Sourcing(db_name=docopt_args['<project>'])
+	# 		crawler(docopt_args)
+	# 		#s.db.queue.drop()
+	# 		Export(docopt_args)
+	# 		return "Discovery completed !"
+	# 	else:
+	# 		print "Discovery mode needs a query to search. Please check your arguments and try again"
+	# 		print docopt_args['--help']
+	# 		return False
+	# 	#Scheduler using UNIX COMMAND
+	# 	# if docopt_args['--repeat']:
+	# 	# 	schedule(crawler, docopt_args)
+	# 	# 	return sys.exit()
+	
 	# if docopt_args['crawl'] is True:
-	# 	TaskManager(docopt_args)
-
-	if docopt_args['discover'] is True:
-		print "Running discovery mode ..."
-		if docopt_args['<query>'] is not None:
-			Discovery(db_name=docopt_args['<project>'],query=docopt_args['<query>'], path=docopt_args['--file'], api_key=docopt_args['--key'])
-			Sourcing(db_name=docopt_args['<project>'])
-			crawler(docopt_args)
-			#s.db.queue.drop()
-			Export(docopt_args)
-			return "Discovery completed !"
-		else:
-			print "Discovery mode needs a query to search. Please check your arguments and try again"
-			print docopt_args['help']
-			return False
-		#Scheduler using UNIX COMMAND
-		# if docopt_args['--repeat']:
-		# 	schedule(crawler, docopt_args)
-		# 	return sys.exit()
-	elif docopt_args['crawl'] is True:
-		s = Sourcing(db_name=docopt_args['<project>'])
-		crawler(docopt_args)
-		print "sourcing completed.\nExporting"
-		Export(docopt_args)
-		print "Export ok!>>>>>>>"
-		Report(docopt_args)
-		return True
-		#crawler(docopt_args)
-		# if docopt_args['--repeat']:
-			# schedule(crawler, docopt_args)
-			# return sys.exit()
+		
+	# 	s = Sourcing(db_name=docopt_args['<project>'])
+	# 	crawler(docopt_args)
+	# 	print "sourcing completed.\nExporting"
+	# 	Export(docopt_args)
+	# 	print "Export completed.\nReport"
+	# 	Report(docopt_args)
+	# 	return True
+	# 	#crawler(docopt_args)
+	# 	# if docopt_args['--repeat']:
+	# 		# schedule(crawler, docopt_args)
+	# 		# return sys.exit()
 	elif docopt_args['stop']:
 		db = Database(docopt_args['<project>'])
 		db.queue.drop()
 		# unschedule(docopt_args)
 		print ">>>Current queue is now empty. Process on project %s is stopped" %docopt_args['<project>']
 		print db.stats()
-		return
+		return False
+
 	elif docopt_args['restart']:
 		'''Option restart restarting the current queue without adding to sources'''
 		db = Database(docopt_args['<project>'])
