@@ -1,10 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from database import Database
+import datetime
 
 class Discovery():
 	'''special method to produces seeds url and send it to sources'''
 	def __init__(self, docopt_args):
 		#constitution de la base
-		self.db = Database(docopt_args['<project>')
-		self.db.create_tables()
+		self.db = Database(docopt_args['<project>'])
+		self.db.create_colls()
 		self.seeds = []
 		self.path = docopt_args['<filename>']
 		self.key = docopt_args['<key>']
@@ -14,6 +19,7 @@ class Discovery():
 				self.get_local()
 			if self.query is not None and self.key is not None:
 				self.get_bing()
+			
 		self.send_to_sources(self.db, query)
 		self.send_to_queue(self.db)
 
@@ -73,7 +79,7 @@ class Sourcing():
 	def __init__(self,db_name):
 		'''simple producer : insert from sources database to processing queue'''
 		self.db = Database(db_name)
-		self.db.create_tables()
+		self.db.create_colls()
 		sources_queue = [{"url":url, "date": datetime.datetime.today()} for url in self.db.sources.distinct("url") if url not in self.db.queue.distinct("url")]
 		if len(sources_queue) != 0:
 			self.db.queue.insert(sources_queue)
