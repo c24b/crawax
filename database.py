@@ -85,7 +85,7 @@ class Database(object):
 		url = "\t-urls en cours de traitement: %d\n" % (self.db.queue.count())
 		url2 = "\t-urls traitees: %d\n" % (self.db.results.count()+ self.db.log.count())
 		url3 = "\t-urls erronées: %d\n" % (self.db.log.count())
-		size = "\t-Size of the database %s: %d MB\n" % (self.name, (self.db.command('dbStats', 1024)['storageSize'])/1024/1024.)
+		size = "\t-Size of the database %s: %d MB\n" % (self.db_name, (self.db.command('dbStats', 1024)['storageSize'])/1024/1024.)
 		result = [title, name, res, sources, url, url2, size]
 		return "".join(result)
 	
@@ -95,7 +95,57 @@ class Database(object):
 		sources = "<li>Nombre de sources: %d</li>" % len(self.db.sources.distinct('url')) 
 		url = "<li>urls en cours de traitement: %d\n</li>" % (self.db.queue.count())
 		url2 = "<li>urls traitees: %d</li>" % (self.db.results.count()+ self.db.log.count())
-		size = "<li>Size of the database %s: %d MB</li>" % (self.name, (self.db.command('dbStats', 1024)['storageSize'])/1024/1024.)
-		result = [res, sources, url, url2, size]
+		size = "<li>Size of the database %s: %d MB</li>" % (self.db_name, (self.db.command('dbStats', 1024)['storageSize'])/1024/1024.)
+		result = [res, sources, url, 	url2, size]
 		return "".join(result)
 	
+	def create_node(self):
+		label = ["url", "outlink", "backlink"]
+		print "id,label, type"
+		for i, n in enumerate(self.db.results.find()):
+			print str(i)+";"+n["url"]+";"+label[0]
+		
+		i = i+1
+
+		for n in self.db.results.find():
+			for o in n["outlinks"]:
+				if o is not None:
+					print str(i)+";"+o+";",label[1]
+				
+
+				#print str(i)+";"+o+";"+label[1]
+					i = i+1
+		i = i+1
+
+		for n in self.db.results.find():
+			if n != []:
+				for o in n["backlinks"]:
+					if o is not None:
+						print str(i)+";"+o["url"]+";"+label[2]
+						i = i+1
+		return 
+	def export_outlinks(self):
+		'''Output url : outlink'''
+		print "source; target"
+		for n in self.db.results.find():
+			for o in n["outlinks"]:
+				if o is not None:
+					print n['url']+";"+o
+				else:
+					print n["url"]+";None"
+		return
+	def export_backlinks(self):
+		print "source;target"
+		for n in self.db.results.find():
+			if n != []:
+				for u in n["backlinks"]:
+					print n["url"]+";"+u["url"]
+			# for o in n["backlinks"]:
+			# 		if o is not None:
+			# 			print n['url']+";"+o
+			# 		else:
+			# 			print n["url"]+";None"
+		return
+if __name__ == "__main__":
+	db = Database('RRI')
+	db.create_node()
