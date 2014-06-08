@@ -4,100 +4,99 @@
 from database import Database
 import datetime
 import requests
+import re
 
 TASK_MANAGER_NAME = "manager"
 
 class TaskManager():
 	def __init__(self, docopt_args):
-		'''Initializing projet with parameters stored in a projet database'''
+		'''Initializing projet with parameters stored in a projet database AND user input'''
+		#Load the Taskmanager database
 		self.task_db = Database(TASK_MANAGER_NAME)
-		self.collection =self.task_db.create_coll('tasks')
-		self.doc = self.collection.find_one({"project":docopt_args['<project>']})
-		self.map(docopt_args)		
-		#self.config()
-		
-		self.run()
+		self.collection =self.task_db.create_coll('tasks')	
+		#Load user input as attributes of TaskManager
+		self.config(docopt_args)
+		self.dispatch()
 
-	def run(self):
-		if self.doc['<project>']:
-			if self.doc is None:
-				if docopt_args['<filename>']:
-					self.map(docopt_args)
-					print "Creating a new task for project \"%s\"" %docopt_args['<project>']
-					self.collection.insert(self.data)
-					return self
-				elif docopt_args['<key>']:
-					self.map(docopt_args)
-					print "Creating a new task for project \"%s\"" %docopt_args['<project>']
-					self.collection.insert(self.data)
-					return self
-				else:
-					print "No project configuration for \"%s\" has been found! \nPlease start your new project adding an API Key OR/AND a file path." %docopt_args['<project>']
-					print "Type python crawtext.py --help to see basic instructions"
-					return False
+	def config(self, docopt_args):
+		'''Mapping user parameters into object attributes'''
+		for k, v in docopt_args.items():
+			k = re.sub("<|>|-", "", k)
+			#print k,v
+			setattr(self, k, v)
+		return self
+	
+	def dispatch(self):
+		if self.crawl is True:
+			if self.find():
+				print "Restarting project %s" %self.project
+				self.update()
+				return
 			else:
-				print "Task for \"%s\" project already exist" %docopt_args['<project>'] 
-				if docopt_args['<filename>']:			
-					print "Adding new configuration for project :%s" %docopt_args['<project>'] 
-					self.update()
-					return self
-				elif docopt_args['<key>']:
-					print "Adding new configuration for project :%s" %docopt_args['<project>'] 
-					self.update()
-					return self
-				else:
-					if self.doc["key"] or self.doc["filename"]:
-						print "Reactivate the task with last configuration"
-						print self.doc
-						self.activate()
-						return self
-					else:
-						print "No project configuration for \"%s\" has been found! \nPlease start your new project adding an API Key OR/AND a file path." %docopt_args['<project>']
-						print "Type python crawtext.py --help to see basic instructions"
-						return False
-	def map(self, docopt_args):
-		'''mapping console param to data'''
-		self.data = {	"project":docopt_args['<project>'],
-						"query":[str(docopt_args['<query>']).decode("utf8")],
-						"file":[str(docopt_args['<filename>']).decode("utf8")],
-						"key": [str(docopt_args['<key>']).decode("utf8")],
-						"date": [datetime.datetime.today()],
-						"nb_crawl": 0,
-						"status": "Created",
-					
-					}
-		return self.data
-	def find_project(self):
-		self.map()
-		print self.data["project"]
-		self.collection.find({	"project":self.data["project"]})
+				print "No project \"%s\" found. Creating a new one" %self.project
+				self.create()
+				return
+		elif self.remove is True:
+			print "Deleting project %s" %self.project
+			self.delete()
+			return
 		
+		else:
+			pass
+			return 
+
+	def find(self):
+		'''Finding an existing project in the job db: Boolean'''
+		if self.project in self.collection.distinct("project"):
+			self.doc = self.collection.find_one({"project": self.project})
+			self.id = self.doc["_id"]
+			return True		
+		else:
+			return False	
+			
 	def create(self):
 		'''Creating a new project into Task Manager'''
-		print "Creating a New Task"
-		#initial insert
-		self.collection.insert({"project":self.project, "data":self.data})
+		print "Creating a project task"
+		#1.agnostic version 
+		# data = {}
+		# for k,v in self.__dic__:
+		# 	if k not in ["db", "collection"]:
+			# data[k] = v
+		# self.collection.insert(data)
+
+		#2.(non agnostic version)
+		try:
+			self.collection.insert({"project":self.project, 
+								"query":[self.query], 
+								"file":[self.file], 
+								"key": self.key, 
+								"status": "created",
+								"nb_crawl": 0,
+								"crawl_date": [datetime.datetime.today()]})
+			try:
+				self.doc = self.collection.find_one({"project": self.project})
+				self.id = doc["_id"]
+				return self
+			except Exception:
+				return False
+		except Exception:
+			return False
 		
-		return self
 	
 	def update(self):
 		'''Updating existing project into Task Manager'''
-		self.map()
-		self.id = self.doc["_id"]			
-		if self.data["query"] != self.doc["query"]:	
-			self.collection.update({"_id":self.id}, {"$push":{"query":self.data["query"]}}, True)
-		elif self.data["key"] != self.doc["query"]:
-			self.collection.update({"_id":self.id}, {"$push":{"key":self.data["key"]}}, True)
-		elif self.data["file"] != self.doc["file"]:
-			self.collection.update({"_id":self.id}, {"$push":{"filename":self.data["file"]}}, True)
-		else:
-			pass
+		print "updating project"
+		if self.query:	
+			self.collection.update({"_id":self.id}, {"$push":{"query":self.query}}, True)
+		if self.key:
+			self.collection.update({"_id":self.id}, {"$push":{"key":self.key}}, True)
+		if self.file:
+			self.collection.update({"_id":self.id}, {"$push":{"filename":self.file}}, True)
 		self.activate()
 		return self
 	
 	def activate(self):
 		'''Activate the Task'''
-		self.id = self.doc["_id"]
 		self.collection.update({"_id":self.id}, {"$push":{"date":datetime.datetime.today()}}, True)
 		self.collection.update({"_id":self.id}, {"$inc":{"nb_crawl":1}}, True)
 		self.collection.update({"_id":self.id}, {"$set":{"status":"Activate"}}, True)
@@ -107,18 +106,11 @@ class TaskManager():
 		'''Deactivate the Task'''
 		self.collection.update({"_id":self.id}, {"$set":{"status":"Deactivated"}}, True)
 		return self
-	def remove(self):
+	
+	def delete(self):
 		'''Remove the Task'''
-		self.map()
-		self.project = self.doc["project"]
-		self.doc = self.collection.find({"project":self.project})
-		for n in self.doc:
-			print n
-			# self.collection.remove({"project":self.project})
-		return self
-
-class Dispatch():
-	def __init__(self):
-		self.task_db = Database(TASK_MANAGER_NAME)
-		self.collection =self.task_db.create_coll('tasks')
-		self.doc = self.collection.find_one({"project":docopt_args['<project>']})
+		if self.find():
+			self.collection.remove({"project":self.project})
+		else:
+			print "No project \"%s\" found. Exiting"
+		return
