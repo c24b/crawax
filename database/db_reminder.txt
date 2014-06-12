@@ -1,0 +1,14 @@
+from pymongo import Connection
+connection = Connection('localhost', 27017) #Connect to mongodb
+
+print(connection.database_names())  #Return a list of db, equal to: > show dbs
+
+db = connection['testdb1']          #equal to: > use testdb1
+print(db.collection_names())        #Return a list of collections in 'testdb1'
+print("posts" in db.collection_names())     #Check if collection "posts" 
+                                            #  exists in db (testdb1)
+
+collection = db['posts']
+print(collection.count() == 0)    #Check if collection named 'posts' is empty
+
+collection.drop()                 #Delete(drop) collection named 'posts' from db
