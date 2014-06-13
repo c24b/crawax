@@ -35,9 +35,10 @@ __all__ = ['crawtext', 'manager','database']
 
 import __future__
 from docopt import docopt
-from jobs.manager import Manager
-import sys 
-
+from manager import Manager
+import sys
+ 
+CRAWTEXT = "crawtext"
 if __name__ == "__main__":
 	'''sending job to be done'''
 	t = Manager(docopt(__doc__))
