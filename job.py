@@ -1,31 +1,18 @@
 class Job():
-	def __init__(self, project_name=None):
+	def __init__(self, project_name=None, params= None):
 		'''Initializing projet with parameters stored in the manager database'''
 		#Load the Taskmanager database
-		if project_name is not None:
-			self.name = project_name
+		self.name = project_name
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection = self.task_db.use_coll('tasks')
-			
-	def find(self, project_name=None):
-		'''Finding an existing Job in Manager (Boolean)'''
-		if project_name is not None:
-			self.name = project_name
-		if self.name in self.collection.distinct("project"):
-			self.doc = self.collection.find_one({"project": self.name})
-			print self.doc
-			self.id = self.doc["_id"]
-			return True		
-		else:
-			return False	
-	
+		self.doc = self.collection.find_one({"project": self.name})
+		self.id = self.doc["_id"]
+		self.params = params
+
 	def config(self):
 		'''Getting params stored in manager db and store them into params attribute'''
-		if self.name:
-			params = self.collection.find_one({"project":self.name})
-			self.map_params(params)
-		else: 
-			return False
+		return self.map_params(self.doc)
+		
 	
 
 	def map_params(self, params):
