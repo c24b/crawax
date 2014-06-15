@@ -27,7 +27,7 @@ class Manager():
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection =self.task_db.create_coll('tasks')	
 			
-		if type(docopt_args) == dict:
+		if type(docopt_args) != str:
 			'''configure a job with crawtext docopt'''
 			#Load user input as attributes of Manager
 			self.config(docopt_args)
@@ -35,12 +35,17 @@ class Manager():
 		
 		elif type(docopt_args) == str:
 			'''manage an existing job'''
+			print "running crawl for %s" %docopt_args
 			self.project = docopt_args
 			self.find()
 			self.manage_job()
-		else:
+		elif docopt_args is None:
 			'''manage every jobs'''
+			print "running every jobs in Manager"
 			self.manage_all()
+		else:
+			print "Not Implemented"
+			pass
 			
 
 	def config(self, docopt_args):
@@ -54,10 +59,11 @@ class Manager():
 	def dispatch(self):
 		'''Dispatching commands of Crawtext for actions or programming a task.
 		(this part of the code non agnostic but the main item is project)'''
-		j = Job(self.project)
+		#j = Job(self.project)
 		if self.crawl is True:
 			if self.find():
 				#print "Restarting project %s" %self.project
+				j = Job(self.project)
 				if j.upsert():
 					print "Crawl job for the project \"%s\" has been sucessful updated!" %self.project
 				return
@@ -74,6 +80,14 @@ class Manager():
 			#see other options
 			print "Action for the project \"%s\" is not implemented yet. Aborting" %self.project
 			return
+
+	def find(self):
+		if self.project in self.collection.distinct("project"):
+			self.doc = self.collection.find_one({"project": self.project})
+			self.id = self.doc["_id"]
+			return True		
+		else:
+			return False
 
 	def find_all(self):
 		return [Job(n["project"]) for n in self.collection.find()]
@@ -114,13 +128,23 @@ class Job():
 	def __init__(self, project_name=None):
 		'''Initializing projet with parameters stored in the manager database'''
 		#Load the Taskmanager database
-		self.name = project_name
+		if project_name is not None:
+			self.name = project_name
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection = self.task_db.use_coll('tasks')
-		if self.name:			
-			self.config()
-			self.get_last_date()
-		
+			
+	def find(self, project_name=None):
+		'''Finding an existing Job in Manager (Boolean)'''
+		if project_name is not None:
+			self.name = project_name
+		if self.name in self.collection.distinct("project"):
+			self.doc = self.collection.find_one({"project": self.name})
+			print self.doc
+			self.id = self.doc["_id"]
+			return True		
+		else:
+			return False	
+	
 	def config(self):
 		'''Getting params stored in manager db and store them into params attribute'''
 		if self.name:
@@ -139,18 +163,8 @@ class Job():
 				setattr(self, k, v)
 			return self	
 	
-	def find(self, project_name=None):
-		'''Finding an existing Job in Manager (Boolean)'''
-		if project_name is not None:
-			self.project = project_name
-		if self.project in self.collection.distinct("project"):
-			self.doc = self.collection.find_one({"project": self.project})
-			self.id = self.doc["_id"]
-			return True		
-		else:
-			return False	
 			
-	def create(self):
+	def create(self, name= None):
 		'''Creating a new Job into Manager'''
 		#1.agnostic version 
 		# self.data = {}
@@ -228,10 +242,9 @@ class Job():
 	# Existing results of Job in specific database
 	def get_last_date(self, project_name=None):
 		if self.name or project_name:
-			if self.crawl_date:
-				self.last_date = self.date[-1]
-				self.last_update = ((self.last_date).day, (self.last_date).month, (self.last_date).year, (self.last_date).hour, (self.last_date).minute)
-				return self.last_update
+			self.last_date = self.date[-1]
+			self.last_update = ((self.last_date).day, (self.last_date).month, (self.last_date).year, (self.last_date).hour, (self.last_date).minute)
+			return self.last_update
 	#Useless
 	def get_sources(self):
 		self.project_db = Database(self.name)
