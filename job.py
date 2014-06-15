@@ -1,12 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 class Job():
 	def __init__(self, project_name=None, params= None):
 		'''Initializing projet with parameters stored in the manager database'''
 		#Load the Taskmanager database
 		self.name = project_name
-		self.task_db = Database(TASK_MANAGER_NAME)
-		self.collection = self.task_db.use_coll('tasks')
-		self.doc = self.collection.find_one({"project": self.name})
-		self.id = self.doc["_id"]
+		# self.task_db = Database(TASK_MANAGER_NAME)
+		# self.collection = self.task_db.use_coll('tasks')
+		# self.doc = self.collection.find_one({"project": self.name})
+		# self.id = self.doc["_id"]
 		self.params = params
 
 	def config(self):
