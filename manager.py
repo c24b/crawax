@@ -26,27 +26,59 @@ class Manager():
 		#Load the Taskmanager database
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection =self.task_db.create_coll('tasks')	
-			
-		if type(docopt_args) != str:
-			'''configure a job with crawtext docopt'''
-			#Load user input as attributes of Manager
-			self.config(docopt_args)
-			self.dispatch()
 		
+		if docopt_args is None:
+			'''run every jobs in task manager'''
+			print "running every jobs in Manager"
+			self.run()
+
 		elif type(docopt_args) == str:
 			'''manage an existing job'''
 			print "running crawl for %s" %docopt_args
-			self.project = docopt_args
-			self.find()
-			self.manage_job()
-		elif docopt_args is None:
-			'''manage every jobs'''
-			print "running every jobs in Manager"
-			self.manage_all()
+			self.run_job(docopt_args)
+			# self.project = docopt_args
+			# self.find()
+			# self.manage_job()
+		
+		elif type(docopt_args) != str:
+			'''configure a job with crawtext docopt'''
+			#Load user input as attributes of Manager
+			print "Configuring job %s" %docopt_args
+			self.configure_job(docopt_args)
+			# self.config(docopt_args)
+			# self.dispatch()
+		
+		
 		else:
 			print "Not Implemented"
 			pass
-			
+	
+	def run(self):
+		'''manage every jobs in task manager'''
+		today = date.today()
+		for n in self.collection.find():
+			self.name = n["project"]
+			job = Job(self.name)
+			job.run()
+			job.update()
+		return 
+	def run_job(self, docopt_args):
+		j = Job(docopt_args)
+		j.find_job()
+		j.run()
+		return j.update()
+	def find_job(self, docopt_args):
+		self.
+		self.doc = self.collection.find():	
+
+
+	def configure_job():
+		if self.find_job():
+			"print updating existing job with last options"
+			return self.update_job()
+		else:
+			return self.create_job()
+
 
 	def config(self, docopt_args):
 		'''Mapping user parameters into object attributes'''

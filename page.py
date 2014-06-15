@@ -3,41 +3,56 @@
 
 #from __future__ import print_function
 
-# import datetime
-# from os.path import exists
-# import sys
-# import requests
-# import json
-# import re
-# from goose import Goose
-# from pymongo import errors as mongo_err
-# from bs4 import BeautifulSoup as bs
-# from urlparse import urlparse
-# from random import choice
-# from tld import get_tld
-# from abpy import Filter
+from datetime import date
+import requests
+import re
+from goose import Goose
+from utils import Filter
 
 
-# unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
-# adblock = Filter(file('easylist.txt'))
-
-class Page():
+class Page(object):
+	def __init__(self):
+		self.url = None
+		self.raw_html = None
+		self.crawl_date = None
+		self.status = None
+		self.error_type = None
+		self.status_code = None
+		self.type = "page"
+		
+class PageFactory():
 	'''Page factory'''
 	def __init__(self, url, query):
 		self.url = url
 		self.query = query
-		self.start_date = datetime.datetime.now()
-			
+		self.page = Page()
+		self.page.crawl_date = self.start_date = date.today()
+		
+		self.page.url = url
+		self.page.query = query
+		self.unwanted_extensions = ['css','js','gif','asp', 'GIF','jpeg','JPEG','jpg','JPG','pdf','PDF','ico','ICO','png','PNG','dtd','DTD', 'mp4', 'mp3', 'mov', 'zip','bz2', 'gz', ]	
+		self.adblock = Filter(file('easylist.txt'))
+	def create(self):	
+		if self.check() and self.request() and self.control():
+			if self.extract():
+				return self.article
+		else:
+			return self.page
+
 	def check(self):
-		print self.url
 		'''Bool: check the format of the next url compared to curr url'''
-		if self.url is  None or len(self.url) <= 1 or self.url == "\n":
-			self.error_type = "Url is empty"
+		if self.url is None or len(self.url) <= 1 or self.url == "\n":
+			self.page.error_type = "Url is empty"
+			self.page.status_code = 204
+			self.page.status = False
 			return False
-		elif (( self.url.split('.')[-1] in unwanted_extensions ) and ( len( adblock.match(self.url) ) > 0 ) ):
-			self.error_type="Url has not a proprer extension or page is an advertissement"
+		elif (( self.url.split('.')[-1] in self.unwanted_extensions ) and ( len( self.adblock.match(self.url) ) > 0 ) ):
+			self.page.error_type="Url has not a proprer extension or page is an advertissement"
+			self.page.status_code = 204
+			self.page.status = False
 			return False
 		else:
+			self.page.status = True
 			return True
 		
 	def request(self):
@@ -52,97 +67,113 @@ class Page():
 				
 				try:
 					
-					self.src = self.req.text
+					self.page.raw_html = self.req.text
+					self.page.status = True
 					return True
 				except Exception, e:
 					
-					self.error_type = "Request answer was not understood %s" %e
-					self.status_code = 400
+					self.page.error_type = "Request answer was not understood %s" %e
+					self.page.status_code = 400
+					self.page.status = False
 					return False
 				else:
-					self.error_type = "Not relevant"
-					self.status_code = 0
+					self.page.error_type = "Not relevant"
+					self.page.status_code = 0
+					self.page.status = True
 					return False
 			except Exception, e:
 				#print "Error requesting the url", e
-				self.error_type = "Request answer was not understood %s" %e
-				self.status_code = 400
+				self.page.error_type = "Request answer was not understood %s" %e
+				self.page.status_code = 400
+				self.page.status = False
 				return False
 		except requests.exceptions.MissingSchema:
-			self.error_type = "Incorrect url - Missing sheme for : %s" %self.url
-			self.status_code = 406
+			self.page.error_type = "Incorrect url - Missing sheme for : %s" %self.url
+			self.page.status_code = 406
+			self.page.status = False
 			
 			return False
 		except Exception as e:
-			self.error_type = "Unknown Exception:  %s" %e
-			self.status_code = 204
+			self.page.error_type = "Another wired exception", e
+			self.page.status_code = 204
 			return False
 		
 	def control(self):
 		'''Bool control the result if text/html or if content available'''
-		
+		#Content-type is not html 
 		try:
-			#Content-type is not html 
 			self.req.headers['content-type']
 			if 'text/html' not in self.req.headers['content-type']:
-				self.error_type="Content type is not TEXT/HTML"
-				self.status_code = 404
+				self.page.error_type="Content type is not TEXT/HTML"
+				self.page.status_code = 404
+				self.page.status = False
 				return False
 			#Error on ressource or on server
 			elif self.req.status_code in range(400,520):
-				self.status_code = self.req.status_code
-				self.error_type="Connexion error"
+				self.page.status_code = self.req.status_code
+				self.page.error_type="Connexion error"
+				self.page.status = False
 				return False
 			#Redirect
-			#deactivate redirect
 			#~ elif len(self.req.history) > 0 | self.req.status_code in range(300,320): 
 				#~ self.error_type="Redirection"
 				#~ self.bad_status()
 				#~ return False
 			else:
-				self.status_code = 200
-				self.error_type= "Ok"
+				self.page.status_code = 200
+				self.page.status = True
 				return True	
 		except Exception:
-			self.error_type="Request headers are not found"
-			self.status_code = 403
+			self.page.error_type="Request headers are not found"
+			self.page.status_code = 403
+			self.page.status = False
 			return False		
 		
 	def extract(self):
 		'''Dict extract content and info of webpage return boolean and self.info'''
 		
 		try:
+			#using Goose extractor
+			#print "extracting..."
+			self.article = ArticleFactory(raw_html=self.page.raw_html, url=self.page.url)
+			self.article.extract()
+			#self.article = Goose(raw_html=self.page.raw_html, url=self.page.url)
 			
 			#filtering relevant webpages
 			
 			if self.filter() is True:
-				self.outlinks = set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})])
+				self.type = "article"
+				#self.article.outlinks = set([self.clean_url(url=e.attrs['href']) for e in bs(self.src).find_all('a', {'href': True})])
 				#print self.outlinks
 
-				self.info = {	
-								"url":self.url,
-								"query": self.query,
-								"domain": get_tld(self.url),
-								"outlinks": [{"url":n, "domain":get_tld(n)} for n in self.outlinks if n is not None],
-								"backlinks":[{"url":n, "domain":get_tld(n)} for n in self.outlinks if n == self.url],
-								"texte": self.article.cleaned_text,
-								"title": self.article.title,
-								"meta_description":bs(self.article.meta_description).text,
-								"date": [self.crawl_date]
-								}
-				return self.info
+				# self.info = {	
+				# 				"url":self.url,
+				# 				"query": self.query,
+				# 				"domain": get_tld(self.url),
+				# 				"outlinks": [{"url":n, "domain":get_tld(n)} for n in self.outlinks if n is not None],
+				# 				"backlinks":[{"url":n, "domain":get_tld(n)} for n in self.outlinks if n == self.url],
+				# 				"texte": self.article.cleaned_text,
+				# 				"title": self.article.title,
+				# 				"meta_description":bs(self.article.meta_description).text,
+				# 				"date": [self.crawl_date]
+				# 				}
+				return self.article
 			else:
-				self.error_type = "Not relevant"
-				self.status_code = 0
-				return False	
+				self.page.error_type = "Not relevant"
+				self.page.status_code = 0
+				self.page.status = True
+				return self.page	
 		except Exception, e:
 			#print e
-			self.error_type = str(e)
-			self.status_code = -1
-					
+			self.page.error_type = str(e)
+			self.page.status_code = -1
+			self.page.status = False
+			return self.page		
+	
 	def filter(self):
-		'''Query the content (self.content) that match the query (self.query): supports AND, OR and space'''
-		if self.article is not None:
+		#to
+		'''Bool Decide if page is relevant and match the correct query. Reformat the query properly: supports AND, OR and space'''
+		if self.article.cleaned_text is not None or self.article.cleaned_text != '':
 			self.query = re.sub('-', ' ', self.query) 
 			if 'OR' in self.query:
 				for each in self.query.split('OR'):
@@ -158,33 +189,12 @@ class Page():
 				query4re = self.query.lower().replace(' ', '.*')
 				return bool(re.search(query4re, self.article.cleaned_text, re.IGNORECASE) or re.search(query4re, self.url, re.IGNORECASE))
 		else:
-			return False
-
+			return False	 	
 	def bad_status(self):
 		'''create a msg_log {"url":self.url, "error_code": self.req.status_code, "error_type": self.error_type, "status": False,"date": self.crawl_date}'''			
 		try:
-		 	return {"url":self.url, "query": self.query, "error_code": str(self.req), "type": self.error_type, "status": False, "date":[self.crawl_date]}
+		 	return {"url":self.page.url, "query": self.query, "error_code": str(self.req), "type": self.page.error_type, "status": False, "date":[self.page.crawl_date]}
 		except:
 		 	return {"url":self.url, "query": self.query, "error_code": "No request answer", "type": self.error_type, "status": False, "date":[self.crawl_date]}
 	
-	def clean_url(self, url):
-		''' utility to normalize url and discard unwanted extension : return a url or None'''
-		#ref tld: http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1
-		#if url in ["#"]:
-		#	print url
-		if url not in [ "#","/", None, "\n", "",] or url not in 'javascript':
-			self.netloc = urlparse(self.url).netloc
-			uid = urlparse(url)
-			#if next_url is relative take previous url netloc
-			if uid.netloc == "":
-				if len(uid.path) <=1:
-					return None			
-				elif (uid.path[0] != "/" and self.netloc[-1] != "/"):
-					clean_url = "http://"+self.netloc+"/"+uid.path
-				else:
-					clean_url = "http://"+self.netloc+uid.path
-			else:
-				clean_url = url
-			return clean_url
-		else:
-			return None			
+	

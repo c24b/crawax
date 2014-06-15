@@ -4,6 +4,8 @@
 
 from datetime import datetime
 from database import Database
+from page import PageFactory
+
 import pymongo
 def crawler(name, query):
 	'''Main Crawler for Job'''
@@ -25,29 +27,30 @@ def crawler(name, query):
 			
 			if url not in db.results.find({"url":url}):
 				print url
-				# p = PageFactory(url, query)
-			
+				p = PageFactory(url, query)
+				page = p.create()
+				print page.type
 			
 				
 				#print "Links", p.outlinks
 				#db.results.update(p.info, {'$push': {"date": datetime.today()}}, upsert=True)
 				#db.results.insert(p.info)
-				if p.outlinks is not None:
-					try:
-						for n_url in p.outlinks:
-							if n_url is not None or  n_url not in db.queue.find({"url":n_url}) or n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
-								# Checking correct url before is problematic
-								# next_p = Page(n_url, query)
-								# if next_p.clean_url(p.url) is not None:
-								print n_url
-								db.queue.insert({"url":n_url})
-					except mongo_err:
-						db.log.udpate({"url":url, "error_type": "pymongo error inserting outlinks", "query": self.query, "status":False},{'$push': {"date": datetime.today()}}, upsert=True)
-				elif p.error_type != 0:
-					''' if the page is not relevant do not store in db'''
-					db.log.update(p.bad_status(),{'$push':{"date": datetime.today()}}, upsert=True)
-				else:
-					continue
+				# if p.outlinks is not None:
+				# 	try:
+				# 		for n_url in p.outlinks:
+				# 			if n_url is not None or  n_url not in db.queue.find({"url":n_url}) or n_url not in db.results.find({"url":n_url}) or n_url not in db.log.find({"url":n_url}):
+				# 				# Checking correct url before is problematic
+				# 				# next_p = Page(n_url, query)
+				# 				# if next_p.clean_url(p.url) is not None:
+				# 				print n_url
+				# 				db.queue.insert({"url":n_url})
+				# 	except mongo_err:
+				# 		db.log.udpate({"url":url, "error_type": "pymongo error inserting outlinks", "query": self.query, "status":False},{'$push': {"date": datetime.today()}}, upsert=True)
+				# elif p.error_type != 0:
+				# 	''' if the page is not relevant do not store in db'''
+				# 	db.log.update(p.bad_status(),{'$push':{"date": datetime.today()}}, upsert=True)
+				# else:
+				# 	continue
 
 			db.queue.remove({"url": url})
 			if db.queue.count() == 0:
