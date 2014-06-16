@@ -4,9 +4,93 @@
 
 from datetime import datetime
 from database import Database
-from page import PageFactory
-
 import pymongo
+import requests
+
+class Crawler(object):
+	def __init__(self, params):
+		self.project = params["project"]
+		self.query = params["query"][-1]
+		self.file = params["file"][-1]
+		self.key = params["key"][-1]
+		self.db = Database(params["project"])
+		self.db.create_colls()
+		self.sourcing = params["sourcing"]
+		self.seeds = []
+
+	def send_to_sources(self):	
+		for n in self.seeds:
+			self.db.sources.update({"url":n, "discovery": True}, {"$push": {"date":datetime.today()}}, upsert=False)
+		return self.db
+
+	def send_to_queue(self):
+		#here we could filter out problematic urls
+		sources_queue = [{"url":url} for url in self.db.sources.distinct("url")]
+		if len(sources_queue) != 0:
+			#db.sources.update([{"url":n}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
+			self.db.queue.insert(sources_queue)
+		return self
+	def get_bing(self):
+		''' Method to extract results from BING API (Limited to 5000 req/month). ''' 
+		print "Bing!", self.query
+		try:
+			r = requests.get(
+					'https://api.datamarket.azure.com/Bing/Search/v1/Web', 
+					params={
+						'$format' : 'json',
+						'$top' : 100,
+						'Query' : '\'%s\'' % self.query,
+					},
+					auth=(self.key, self.key)
+					)
+
+			print "Searching on Bing"
+			for e in r.json()['d']['results']:
+				#print e['Url'] 
+				self.seeds.append(e['Url']) 
+			self.seeds = list(set(self.seeds))
+			print len(self.seeds),"results from Bing API"
+			return True
+		except Exception as e:
+			print e
+			self.status_code = -1
+			self.error_type = "Error fetching results from BING API, check your credentials. May not exceed the 5000req/month limit (%s)" %e.args
+			return False
+
+	def get_local(self):
+		''' Method to extract url list from text file'''
+		print "Collecting url from sourcefile"
+		try:
+			for url in open(self.file).readlines():
+				self.seeds.append(re.sub("\n", "", url)) 
+			self.seeds = list(set(self.seeds))
+			return True
+		except Exception:
+			self.status_code = -1
+			self.error_type = "Error fetching results from file %s. Check if file exists" %self.file
+			print self.error_type
+			return False
+	
+	def discovery(self):	
+		if self.sourcing is False:
+			if self.file is not None:
+				self.get_local()
+			if self.query is not None and self.key is not None:
+				self.get_bing()	
+			else:
+				print "No initial sources to load"
+			self.send_to_sources()
+		return self.send_to_queue()
+		
+	def crawl(self):
+		self.discovery()
+		print len([n for n in self.db.queue.find()])
+		return 
+
+		# while self.db.queue.count > 0:
+		# 	for url in self.db.queue.distinct("url"):
+		# 		print url
+
 def crawler(name, query):
 	'''Main Crawler for Job'''
 	start = datetime.now()
@@ -67,3 +151,4 @@ def crawler(name, query):
 	print "crawl finished, %i results and %i sources are stored in Mongo Database: %s in %s" %(db.results.count(),db.sources.count(),name, elapsed)
 	return True
 
+# if __name__ == "__main__":
