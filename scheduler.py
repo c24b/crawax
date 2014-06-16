@@ -10,7 +10,6 @@ from database import Database, TASK_MANAGER_NAME, TASK_COLL
 from job import Job
 import re
 
-
 class Scheduler(object):
 	'''Scheduler send job to Task manager'''
 	def __init__(self, params):
@@ -26,7 +25,8 @@ class Scheduler(object):
 				setattr(self.job, k, [v])
 			else:
 				setattr(self.job, k, v)
-	
+		
+
 	def schedule(self):
 		if self.find_task() is False:
 			print self.create()

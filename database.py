@@ -6,7 +6,9 @@ from pymongo import MongoClient
 from pymongo import errors
 import re
 
-DATABASE = "Database"
+
+TASK_MANAGER_NAME = "tasks"
+TASK_COLL = "tasks"
 
 class Database(object):
 	'''Database creation''' 
@@ -79,9 +81,9 @@ class Database(object):
 	def drop_all_dbs(self):
 		'''remove EVERY SINGLE MONGO DATABASE'''
 		for n in self.show_dbs():
-			if n not in ["projects", "tasks"]:
-				self.use_db(n)
-				self.drop("database", n)
+			#if n not in ["projects", "tasks"]:
+			self.use_db(n)
+			self.drop("database", n)
 
 	def stats(self):
 		'''Output the current stats of database in Terminal'''
@@ -151,5 +153,5 @@ class Database(object):
 	# 		# 			print n["url"]+";None"
 	# 	return
 # if __name__ == "__main__":
-# 	db = Database('test')
-# 	db.drop_all_dbs()
+#  	db = Database('test')
+#  	db.drop_all_dbs()

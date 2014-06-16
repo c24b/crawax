@@ -8,12 +8,8 @@ using crawtext script
 
 """
 from datetime import datetime, date
-import requests
-import re
-import json
 from database import Database, TASK_MANAGER_NAME, TASK_COLL
-from multiprocessing import Pool
-from crawler import crawler
+from dispatcher import Dispatcher
 
 
 class Manager():
@@ -33,20 +29,19 @@ class Manager():
 			'''manage an existing job'''
 			print "running crawl for %s" %docopt_args
 			self.run_job(docopt_args)
+
 	def run(self):
 		'''running every JOB present in TASK_MANAGER Database based on their status and their last date'''	
 		for task in self.collection.find():
+			print task["project"]
 			self.task = task
-			if is_active() and is_pending():
-				if activate_discover():
-					'''Recreate from scratch the seeds'''
-					Discovery(task)
-				crawler(task)
+			if self.is_active(): #and self.is_pending():
+				Dispatcher(self.task)
 		return 
 
 	# def manage_all(self):
 	def is_active(self):
-		if self.taks['status'] == "Active":
+		if self.task['status'] == "Active":
 			return True
 		else: return False
 
@@ -65,14 +60,13 @@ class Manager():
 
 	def run_job(self, task_name):
 		'''running one project'''
-		self.task = self.collection.find_one({"project": task_name})
-		if is_active() and is_pending():
-				if activate_discover():
-					Discovery(self.task)
-				crawler(self.task)
-		return 
+		task = self.collection.find_one({"project": task_name})
+		if self.is_active() and self.is_pending():
+			return Dispatcher(self.task)
 
-	
+
+			
+
 				
 if __name__ == '__main__':
 	j = Manager()
