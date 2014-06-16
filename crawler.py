@@ -18,14 +18,16 @@ class Crawler(object):
 		self.sourcing = params["sourcing"]
 		self.seeds = []
 
-	def send_to_sources(self):	
+	def send_seed_to_sources(self):
+		'''from discovery'''	
 		for n in self.seeds:
 			self.db.sources.update({"url":n, "discovery": True}, {"$push": {"date":datetime.today()}}, upsert=False)
-		return self.db
+		return self
 
 	def send_to_queue(self):
 		#here we could filter out problematic urls
 		sources_queue = [{"url":url} for url in self.db.sources.distinct("url")]
+		print sources_queue
 		if len(sources_queue) != 0:
 			#db.sources.update([{"url":n}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
 			self.db.queue.insert(sources_queue)
@@ -77,11 +79,9 @@ class Crawler(object):
 				self.get_local()
 			if self.query is not None and self.key is not None:
 				self.get_bing()	
-			else:
-				print "No initial sources to load"
-			self.send_to_sources()
+			
+			self.send_seed_to_sources()
 		return self.send_to_queue()
-		
 	def crawl(self):
 		self.discovery()
 		print len([n for n in self.db.queue.find()])

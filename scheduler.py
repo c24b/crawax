@@ -9,6 +9,7 @@ from datetime import datetime
 from database import Database, TASK_MANAGER_NAME, TASK_COLL
 from job import Job
 import re
+#from manager import Manager
 #from dispatcher import Dispatcher
 
 class Scheduler(object):
@@ -16,23 +17,36 @@ class Scheduler(object):
 	def __init__(self, params):
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection =self.task_db.create_coll(TASK_COLL)
-		
-		self.job = Job(params['<project>'])
-		for k, v in params.items():
-			k = re.sub("<|>|-|--", "", k)
-			#iteration over a certain type of info
-			if k in ["query","file","key", "date"]:
-				setattr(self.job, k, [v])
-			else:
-				setattr(self.job, k, v)
-		
+		try:
+			self.job = Job(params['<project>'])
+
+			for k, v in params.items():
+				k = re.sub("<|>|-|--", "", k)
+				#iteration over a certain type of info
+				if k in ["query","file","key", "date"]:
+					setattr(self.job, k, [v])
+				else:
+					setattr(self.job, k, v)
+		except KeyError:
+			self.job = Job(params['project'])
+			for k, v in params.items():
+				if k in ["query","file","key", "date"]:
+						setattr(self.job, k, [v])
+				else:
+					setattr(self.job, k, v)
 
 	def schedule(self):
+		
 		if self.job.crawl is True:
 			if self.find_task() is False:
 				print self.create()
 				return self.update()
-		#Editing project
+		
+		elif self.job.run is True:
+			if self.job.project is not None:
+				Manager(self.job.project)
+			else:
+				Manager()
 		elif self.job.stop is True:
 			print self.deactivate()
 
