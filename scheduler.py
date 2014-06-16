@@ -9,11 +9,11 @@ from datetime import datetime
 from database import Database, TASK_MANAGER_NAME, TASK_COLL
 from job import Job
 import re
+#from dispatcher import Dispatcher
 
 class Scheduler(object):
 	'''Scheduler send job to Task manager'''
 	def __init__(self, params):
-		print TASK_COLL
 		self.task_db = Database(TASK_MANAGER_NAME)
 		self.collection =self.task_db.create_coll(TASK_COLL)
 		
@@ -28,10 +28,22 @@ class Scheduler(object):
 		
 
 	def schedule(self):
-		if self.find_task() is False:
-			print self.create()
-			return self.update()
+		if self.job.crawl is True:
+			if self.find_task() is False:
+				print self.create()
+				return self.update()
+		#Editing project
+		elif self.job.stop is True:
+			print self.deactivate()
 
+		elif self.job.remove is True or self.job.delete is True:
+			print self.delete()
+
+		elif self.job.__dict__['restart'] is True:
+			print self.activate()
+		else:
+			print "No argument"
+		return
 	def find_task(self):
 		'''Finding an existing project and comparing last arguments with new ones'''
 		
@@ -63,7 +75,7 @@ class Scheduler(object):
 							pass
 						elif type(self.job.__dict__[k]) != list:					
 							self.collection.update({"project":self.job.project}, {"$set":{k:value}}, True)
-							print "Project %s upgraded with a different %s info" %(self.job.project, k)
+							#print "Project %s upgraded with a different %s info" %(self.job.project, k)
 						else:
 							if task[k] != self.job.__dict__[k][0]:	
 								self.collection.update({"project":self.job.project}, {"$push":{k:value}}, True)
@@ -72,7 +84,8 @@ class Scheduler(object):
 				except KeyError:
 					#Key error append because of _id that we don't want to upgrade!
 					pass
-		return 
+		return
+
 	def update(self):
 		self.collection.update({"project":self.job.project}, {"$push":{"date":datetime.today()}}, True)
 		self.collection.update({"project":self.job.project}, {"$inc":{"nb_crawl":1}}, True)
@@ -80,15 +93,15 @@ class Scheduler(object):
 		return "Project %s has been successfully updated!" %self.job.project
 	
 	def activate(self):
-		self.collection.update({"project":self.job['project']}, {"$set":{"status":"Active"}}, True)
+		self.collection.update({"project":self.job.project}, {"$set":{"status":"Active"}}, True)
 		return "Project %s has been sucessfully activated!" %self.job.project
 	
 	def deactivate(self):
-		self.collection.update({"project":self.job['project']}, {"$set":{"status":"Inactive"}}, True)
+		self.collection.update({"project":self.job.project}, {"$set":{"status":"Inactive"}}, True)
 		return "Project %s has been sucessfully deactivated!" %self.job.project
 	
 	def delete(self):
-		self.collection.remove({"project":self.job['project']})
+		self.collection.remove({"project":self.job.project})
 		return "Project %s has been sucessfully deleted" %self.job.project
 
 
