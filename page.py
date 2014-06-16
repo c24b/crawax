@@ -19,7 +19,12 @@ class Page(object):
 		self.error_type = None
 		self.status_code = None
 		self.type = "page"
-		
+
+class Article(Page):
+	def __init__(self):
+		self.type = article
+		Page.__init__(self)
+
 class PageFactory():
 	'''Page factory'''
 	def __init__(self, url, query):
@@ -35,7 +40,7 @@ class PageFactory():
 	def create(self):	
 		if self.check() and self.request() and self.control():
 			if self.extract():
-				return self.article
+				return Article()
 		else:
 			return self.page
 
