@@ -6,7 +6,7 @@ from datetime import datetime
 from database import Database
 import pymongo
 import requests
-from page import PageFactory
+from page import Page
 class Crawler(object):
 	def __init__(self, params):
 		self.project = params["project"]
@@ -89,9 +89,10 @@ class Crawler(object):
 		start = datetime.now()
 		while self.db.queue.count > 0:
 			for url in self.db.queue.distinct("url"):
-				p = PageFactory(url, self.query)
+				print url, self.query
+				p = Page(url, self.query)
 				page = p.create()
-				print page.type
+				print page
 				self.db.queue.remove({"url": url})
 				if self.db.queue.count() == 0:
 					break
@@ -124,9 +125,11 @@ def crawler(name, query):
 			
 			if url not in db.results.find({"url":url}):
 				print url
-				p = PageFactory(url, query)
-				page = p.create()
-				print page.type
+				p = Page(url, query)
+				if p.create():
+					a = Article()
+				else:
+					print p.error_type
 			
 				
 				#print "Links", p.outlinks
