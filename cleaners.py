@@ -1,10 +1,11 @@
-class DocumentCleaner(object):
-    def __init__(self, article):
-        # config
-        #self.config = config
+from utils import ReplaceSequence
 
+
+class DocumentCleaner(object):
+
+    def __init__(self, article):
         # parser
-        #self.parser = self.config.get_parser()
+        self.parser = get_parser()
 
         # article
         self.article = article
@@ -230,3 +231,5 @@ class DocumentCleaner(object):
         return doc
 
 
+class StandardDocumentCleaner(DocumentCleaner):
+    pass
