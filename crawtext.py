@@ -12,7 +12,7 @@ Usage:
 	crawtext.py stop <project> 
 	crawtext.py report <project> [((--email=<email>| -e <email>) -u <user> -p <passwd>)| (-o <outfile> |--o=<outfile>)]
 	crawtext.py export [results|sources|logs|queue]  <project> [(-o <outfile> |--o=<outfile>)] [-t <type> | --type=<type>]
-	crawtext.py run [project]
+	crawtext.py run <project>
 	crawtext.py (-h | --help)
   	crawtext.py --version
 
@@ -22,6 +22,7 @@ Options:
 	[stop] stop the crawl
 	[report] report on current crawl sent by <mail> OR stored in <file> OR printed out
 	[export] export the specified <collection> into a JSON file and then into a ZIP file
+	[run] directly run a project or every project in DB
 	-f --file Complete path of the sourcefile.
 	-o --o Outfile format for export
 	-k --key  Bing API Key for SearchNY.
