@@ -6,7 +6,7 @@ from datetime import datetime
 from database import Database
 import pymongo
 import requests
-
+from page import PageFactory
 class Crawler(object):
 	def __init__(self, params):
 		self.project = params["project"]
@@ -18,16 +18,17 @@ class Crawler(object):
 		self.sourcing = params["sourcing"]
 		self.seeds = []
 
-	def send_seed_to_sources(self):
-		'''from discovery'''	
+	def send_seed_to_sources(self, mode=None):
+			
 		for n in self.seeds:
-			self.db.sources.update({"url":n, "discovery": True}, {"$push": {"date":datetime.today()}}, upsert=False)
+			print n
+			self.db.sources.update({"url":n, "discovery": True}, {"$push": {"date":datetime.today()}}, upsert=True)
 		return self
 
 	def send_to_queue(self):
 		#here we could filter out problematic urls
 		sources_queue = [{"url":url} for url in self.db.sources.distinct("url")]
-		print sources_queue
+		print self.db.sources.count()
 		if len(sources_queue) != 0:
 			#db.sources.update([{"url":n}, {'$push': {"date": datetime.datetime.today()}}, upsert=True)
 			self.db.queue.insert(sources_queue)
@@ -52,6 +53,7 @@ class Crawler(object):
 				self.seeds.append(e['Url']) 
 			self.seeds = list(set(self.seeds))
 			print len(self.seeds),"results from Bing API"
+			self.send_seed_to_sources(mode="Bing")
 			return True
 		except Exception as e:
 			print e
@@ -84,13 +86,24 @@ class Crawler(object):
 		return self.send_to_queue()
 	def crawl(self):
 		self.discovery()
-		print len([n for n in self.db.queue.find()])
-		return 
+		start = datetime.now()
+		while self.db.queue.count > 0:
+			for url in self.db.queue.distinct("url"):
+				p = PageFactory(url, self.query)
+				page = p.create()
+				print page.type
+				self.db.queue.remove({"url": url})
+				if self.db.queue.count() == 0:
+					break
+			
+			if self.db.queue.count() == 0:
+				print self.db.stats()		
+				break
+		
 
-		# while self.db.queue.count > 0:
-		# 	for url in self.db.queue.distinct("url"):
-		# 		print url
-
+		end = datetime.now()
+		elapsed = end - start
+		print "crawl finished, %i results and %i sources are stored in Mongo Database: %s in %s" %(self.db.results.count(),self.db.sources.count(),self.project, elapsed)
 def crawler(name, query):
 	'''Main Crawler for Job'''
 	start = datetime.now()
