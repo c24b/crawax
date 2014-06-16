@@ -1,25 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-manager.py
-Utils to send CRON jobs with a mongodb collection 
-that stores project and initial configuration given by user 
-using crawtext script
-
+scheduler.py
+Create or Update jobs in  a specific mongodb collection 
+using user input has parameters (passing by docopt full options)
 """
 from datetime import datetime
-from database import Database
+from database import Database, TASK_MANAGER_NAME, TASK_COLL
 from job import Job
 import re
-MANAGER = "Manager"
-Tasks = "Jobs"
-TASK_MANAGER_NAME = "manager"
+
 
 class Scheduler(object):
 	'''Scheduler send job to Task manager'''
 	def __init__(self, params):
+		print TASK_COLL
 		self.task_db = Database(TASK_MANAGER_NAME)
-		self.collection =self.task_db.create_coll('tasks')
+		self.collection =self.task_db.create_coll(TASK_COLL)
 		
 		self.job = Job(params['<project>'])
 		for k, v in params.items():
@@ -33,7 +30,7 @@ class Scheduler(object):
 	def schedule(self):
 		if self.find_task() is False:
 			print self.create()
-			return
+			return self.update()
 
 	def find_task(self):
 		'''Finding an existing project and comparing last arguments with new ones'''
