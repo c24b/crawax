@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from datetime import datetime
 class Job():
-	def __init__(self, project_name=None, params= None):
+	def __init__(self, project_name, params= None):
 		'''Initializing projet with parameters stored in the manager database'''
-		#Load the Taskmanager database
 		self.name = project_name
-		# self.task_db = Database(TASK_MANAGER_NAME)
-		# self.collection = self.task_db.use_coll('tasks')
-		# self.doc = self.collection.find_one({"project": self.name})
-		# self.id = self.doc["_id"]
-		self.params = params
-
+		self.nb_crawl = 0
+		self.query = []
+		self.file = []
+		self.key = []
+		self.date = [datetime.today()]
+		self.status = None
+		# if params is not None:
+		# 	for k, v in params.items():
+		# 		k = re.sub("<|>|-|--", "", k)
+		# 		setattr(self,k, v)
+	
+		
 	def config(self):
 		'''Getting params stored in manager db and store them into params attribute'''
 		return self.map_params(self.doc)
