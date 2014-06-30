@@ -6,29 +6,29 @@ Description:
 A simple crawler in command line.
 
 Usage:
-	crawtext archive [ -f (default|wiki|forum) ] <url>
-	crawtext <user>
-	crawtext <name>
-	crawtext report <name>
-	crawtext export <name>
-	crawtext delete <name>
-	crawtext <name> -u <email>
-	crawtext <name> -q <query>
-	crawtext <name> -s set <url>
-	crawtext <name> -s append <file>
-	crawtext <name> -k set <key>
-	crawtext <name> -k append <key>
-	crawtext <name> -s expand
-	crawtext <name> -s delete [<url>]
-	crawtext <name> -s delete					
-	crawtext <name> -r (monthly|weekly|daily)
+	crawtext.py archive [ -f (default|wiki|forum) ] <url>
+	crawtext.py <name>
+	crawtext.py <email>
+	crawtext.py report <name>
+	crawtext.py export <name>
+	crawtext.py delete <name>
+	crawtext.py <name> -u <email>
+	crawtext.py <name> -q <query>
+	crawtext.py <name> -s set <url>
+	crawtext.py <name> -s append <file>
+	crawtext.py <name> -k set <key>
+	crawtext.py <name> -k append <key>
+	crawtext.py <name> -s expand
+	crawtext.py <name> -s delete [<url>]
+	crawtext.py <name> -s delete					
+	crawtext.py <name> -r (monthly|weekly|daily)
 	
-	crawtext (-h | --help)
-  	crawtext --version
+	crawtext.py (-h | --help)
+  	crawtext.py --version
 Options:
 	Projets:
-	# Pour consulter vos projets :	crawtext vous@cortext.net
 	# Pour consulter un projet : 	crawtext pesticides
+	# Pour consulter vos projets :	crawtext show vous@cortext.net
 	# Pour obtenir un rapport : 	crawtext report pesticides
 	# Pour obtenir un export : 		crawtext export pesticides
 	# Pour supprimer un projet : 	crawtext delete pesticides
@@ -52,7 +52,7 @@ __all__ = ['crawtext', 'manager','database', "scheduler", "dispatcher"]
 
 import __future__
 from docopt import docopt
-from scheduler import Scheduler
+from scheduler2 import Scheduler
 import sys
 
 
@@ -68,3 +68,4 @@ if __name__== "__main__":
 			
 	s = Scheduler()
 	s.schedule(docopt(__doc__))
+	
