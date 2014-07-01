@@ -137,24 +137,7 @@ How does crawtext work?
 		
 		*	pour définir la récurrence :                	crawtext pesticides -r monthly|weekly|daily
 
-Examples
------------------------------
-*   Discover with search:
-With the Bing API key "1234567890", let's get 50 urls from bing and crawl them for the query "Algues Vertes"
-::
-    python crawtext.py alguesVertes discover "Algues Vertes" --key=1234567890
-
-*   Discover with a file:
-With a file seeds.txt that store url (see seeds.txt for example), let's get see how many linked pages match the query "Algues vertes"
-::
-    python crawtext.py alguesVertes discover "Algues Vertes" --file=seeds.txt
-
-*   Crawl:
-With a inital discovery you can crawl again the sources
-::
-    python crawtext.py alguesVertes crawl "Algues Vertes"
-
-Access the results
+Datasets
 -----------------------------
 Crawtext creates a MongoDb database that corresponds to your **project name**
 This database contains 3 main collections:
@@ -162,7 +145,6 @@ This database contains 3 main collections:
 + sources 
 + results 
 + logs (error info)
-
 
 
 Query the results
