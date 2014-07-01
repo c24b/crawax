@@ -22,9 +22,9 @@ Usage:
 	crawtext.py <name> -s delete [<url>]
 	crawtext.py <name> -s delete					
 	crawtext.py <name> -r (monthly|weekly|daily)
-	
 	crawtext.py (-h | --help)
   	crawtext.py --version
+  	
 Options:
 	Projets:
 	# Pour consulter un projet : 	crawtext pesticides
