@@ -75,9 +75,11 @@ Usage
 =====
 How does crawtext work?
 -----------------------------
-::
+
 	Usage:
-		crawtext.py archive [ -f (default|wiki|forum) ] <url>
+	::    
+    
+		''crawtext.py archive [ -f (default|wiki|forum) ] <url>
 		crawtext.py <name>
 		crawtext.py <email>
 		crawtext.py report <name>
@@ -97,41 +99,43 @@ How does crawtext work?
 		crawtext.py --version
 		
 	Options:
-		Projets:
-		# Pour consulter un projet : 	crawtext pesticides
+	::    
+    
+		==Configurer un projet==
+		*	Pour consulter un projet : 	crawtext pesticides
 		
-		# Pour consulter vos projets :	crawtext show vous@cortext.net
+		*	Pour consulter vos projets :	crawtext show vous@cortext.net
 		
-		# Pour obtenir un rapport : 	crawtext report pesticides
+		*	Pour obtenir un rapport : 	crawtext report pesticides
 		
-		# Pour obtenir un export : 		crawtext export pesticides
+		*	Pour obtenir un export : 		crawtext export pesticides
 		
-		# Pour supprimer un projet : 	crawtext delete pesticides
+		*	Pour supprimer un projet : 	crawtext delete pesticides
 		
-		Proprietaire:
-		# pour définir le propriétaire du project: crawtext pesticides -u vous@cortext.net
+		== Définir un utilisateur ==
+		*	pour définir le propriétaire du project: crawtext pesticides -u vous@cortext.net
 		
-		Requête:
-		# pour définir la requête: crawtext pesticides -q "pesticides AND DDT"
+		== Définir sa  Requête ==
+		* pour définir la requête: crawtext pesticides -q "pesticides AND DDT"
 		
-		Sources:
-		# pour définir les sources d'après un fichier :	crawtext pesticides -s set sources.txt	
+		== Sources ==
+		* pour définir les sources d'après un fichier :	crawtext pesticides -s set sources.txt	
 		
-		# pour ajouter des sources d'après un fichier :	crawtext pesticides -s append sources.txt
+		* pour ajouter des sources d'après un fichier :	crawtext pesticides -s append sources.txt
 		
-		# pour définir les sources d'après Bing :		crawtext pesticides -k set 12237675647
+		* pour définir les sources d'après Bing :		crawtext pesticides -k set 12237675647
 		
-		# pour ajouter des sources d'après Bing :		crawtext pesticides -k append 12237675647
+		* pour ajouter des sources d'après Bing :		crawtext pesticides -k append 12237675647
 		
-		# pour ajouter des sources automatiquement :	crawtext pesticides -s expand
+		* 	pour ajouter des sources automatiquement :	crawtext pesticides -s expand
 		
-		# pour supprimer une source :					crawtext pesticides -s delete www.latribune.fr
+		* 	pour supprimer une source :					crawtext pesticides -s delete www.latribune.fr
 		
-		# pour supprimer toutes les sources :			crawtext pesticides -s delete
+		* 	pour supprimer toutes les sources :			crawtext pesticides -s delete
 		
-		Récurrence
+		==Récurrence==
 		
-		# pour définir la récurrence :                	crawtext pesticides -r monthly|weekly|daily
+		*	pour définir la récurrence :                	crawtext pesticides -r monthly|weekly|daily
 
 Examples
 -----------------------------
