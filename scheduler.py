@@ -23,7 +23,9 @@ class Scheduler(object):
 		if j['action'] == "configure":
 			for k,v in j.items():
 				if k != "name" or k != "action":
-					self.collection.update({"name":j['name']},{"$set":{k:v}}, False)
+					self.collection.update({"name":j['name']},{"$set":{"action":"crawl"}}, True)
+					self.collection.insert({"name":j['name']},{"$set":{k:v}}, False)
+					
 			print "%s has been sucessfully updated!"%j['name']
 			return
 			#self.collection.update({"name":j['name'], "action":"crawl"}, j, False)
@@ -118,9 +120,9 @@ class Job(object):
 	def create_from_ui(user_input):
 		'''Send new job into Task Manager DB'''
 		job = {}
-		if user_input['<user>'] is not None:
+		if user_input['<name>'] is not None:
 			
-			if user_input['<user>'] in ['archive', 'report', 'export', 'delete']:
+			if user_input['<name>'] in ['archive', 'report', 'export', 'delete']:
 				print "**Project Name** can't be 'archive', 'report', 'export' or 'delete'"
 				print ">To create or consult a project:\n\tcrawtext.py pesticides"
 				print ">For other option specify the project name:" 
@@ -138,33 +140,29 @@ class Job(object):
 				else:
 					job['name'] = user_input['<user>']
 					job['user'] = None
-				job['action'] = "create"
-				job['date'] = datetime.now()
-				job['active'] = True
-				job['recurrence'] = 'monthly'
-				return job
+					job['action'] = "create"
+					job['date'] = datetime.now()
+					job['active'] = True
+					job['recurrence'] = 'monthly'
 				
-		else:
-			job = {}
-			
-			#print dict_values
-			for k,v in user_input.items():
-				if v is not None and v is not False:
-					k = re.sub("<|>|-|--", "", k)
-					if k in ["report", "extract", "export", "delete", "archive"]:
-						job['action'] = k
-					elif k in ["query", "email", "url", "key", "file"]:
-						job["action"] = "configure"
-						job[k] = v
-						job["active"] = True
-					elif k in ["monthly", "weekly", "daily"]:
-						job["frequency"] = v
-					else:
-						job[k] = v
-						
-			job["date"] = datetime.today()
-			job["user"] = None	
-			return job
+		#print dict_values
+		for k,v in user_input.items():
+			if v is not None and v is not False:
+				k = re.sub("<|>|-|--", "", k)
+				if k in ["report", "extract", "export", "delete", "archive"]:
+					job['action'] = k
+				elif k in ["query", "email", "url", "key", "file"]:
+					job["action"] = "configure"
+					job[k] = v
+					job["active"] = True
+				elif k in ["monthly", "weekly", "daily"]:
+					job["frequency"] = v
+				else:
+					job[k] = v
+					
+		job["date"] = datetime.today()
+		job["user"] = None	
+		return job
 
 	@staticmethod	
 	def create_from_database(doc):
@@ -299,7 +297,10 @@ class ReportJob(Job):
 		
 	def run(self):
 		print "Report:"
-		print self.db.stats()
+		filename = "Report_%s_%d" %(self.name, self.date)
+		with open( 'a') as f:
+			f.write((self.db.stats()).encode('utf-8'))
+		print "Successfully generated report for %s" %self.name 	
 		return self	
 		
 class ExtractJob(Job):
