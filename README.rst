@@ -40,7 +40,7 @@ It is recommended to install ``virtualenv`` to set up a virtual environment in o
 
 Install the packages
 ::
-    sudo apt-get install python-dev mongodb-10gen lxml 
+    sudo apt-get install python-dev mongodb-10gen python-lxml 
     sudo easy_install virtualenv
 
 Install crawtext
@@ -53,14 +53,6 @@ Install the dependencies
     sudo pip install docopt
     sudo pip install tld
 
-Install [goose] <https://github.com/grangier/python-goose>    
-::    
-    $git clone https://github.com/grangier/python-goose.git
-    $ cd python-goose
-    $ sudo pip install -r requirements.txt
-    $ sudo python setup.py install
-
-    
 Manual install on MAC
 -----------------------------
 + [MongoDB] <https://www.mongodb.org/>
@@ -71,127 +63,64 @@ Install the dependencies
     $ sudo pip install docotp
     $ sudo pip install tld
 
-Install [goose] <https://github.com/grangier/python-goose>
-::
-    $ git clone https://github.com/grangier/python-goose.git
-    $ cd python-goose
-    $ sudo pip install -r requirements.txt
-    $ sudo python setup.py install
-
-
-When running crawtext, python might fail import the *_imaging* module
-::
-    >>> import _imaging
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-    ImportError: dlopen(//anaconda/lib/python2.7/site-packages/PIL/_imaging.so, 2): Library not loaded: /opt/anaconda1anaconda2anaconda3/lib/libtiff.5.dylib
-      Referenced from: //anaconda/lib/python2.7/site-packages/PIL/_imaging.so
-      Reason: image not found
-
-
-Reinstalling *PIL* might help: 
-::
-    $sudo pip uninstall pil
-    $pypath=`python -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"` && cd $pypath && sudo rm -rf PIL
-    $sudo pip install pil --allow-external pil --allow-unverified pil
-
-
-Fork some code
---------------
-
-The latest version of crawtext is always available at github <http://github.com/cortext/crawtext/>. 
-To clone the repository:
-::
-    $git clone https://github.com/cortext/crawtext/
-
-You can put crawtext anywhere you want but if you want to follow the Linux filesystem hierarchy 
-(explained `here <http://serverfault.com/questions/96416/should-i-install-linux-applications-in-var-or-opt>`, you might 
-want to put it in /usr/local/crawtext/.
-
-Please feel free to ask, comment and modify this code for your puropose. I will be happy to answer and post resolution here or answer in Pull Requests
 
 Common problems
 -----------------
 + Crawtext failed to connect to mongodb
  If crawtext doesn't start try launch once the daemon of mongo by typing ``sudo mongod`` and then launch crawtext you can close terminal after the crawl completed. If it still blocks you can try a ``sudo mongod --repair``
 
-| Note: if you see a MAX RETRY ERROR on running the virtualenv it is caused by the latest update of Ubuntu version. Please send a pull request with your error
 
-
-Next developpement steps
------------------------------
-+ SH Script to automate crawl as specific date
-+ Extended options for query
 
 Usage
 =====
 How does crawtext work?
 -----------------------------
-Crawtext takes a search query and crawl the web using
+'''Crawtext.
+Description:
+A simple crawler in command line.
 
-+ a sourcefile (.txt) 
-+ or / and a BING SEARCH API KEY
-
-|To get your ** API KEY **from BING register here  |<http://datamarket.azure.com/dataset/bing/search>
-
-Then crawtext stores the found urls in a sources collection and then use it to crawl next pages 
-
-Crawtext has 2 basic mode
-
-- discovery : Create **new** entries in sources database and launch the crawler that stores pertinent page into results collection
-- crawl: Using the **existing** sources database launch the crawler that stores pertinent page into results collection
-
-
-For first run, it is highly recommended to run **discovery** mode to create a sources database for crawling the web
-
-Then the two options might be considered
-
-+ if you want to **monitor** content on the web based on a defined perimeter use **crawl** mode and track changes
-+ if you want to **discover** new sources based on your search use **discovery** mode and expand your search on new content pages
-
-
-    If the process is stopped by the user, the queue treatment is saved for next run (and stored in a specific collection `queue` in the database) you can restart process using command option restart. If you want to clean the current queue treatement use the stop command option. (See full command options for syntax)
-
-You can also send you email while the process is running to be informed of the advancement of the crawl
-
- 
-Command options
------------------------------
-For more informations on specific options and utilities you can type
-::
-    python crawtext.py -h
-
-| as in a normal command line interface you have to be inside the crawtext directory and execute it with python so to run the code you have to type::
-    python crawtext.py
-    with the differents options listed below
-     
-.. code:: python
-
-    Usage:
-        crawtext.py crawl <project> <query> 
-        crawtext.py discover <project> <query> [--file=<filename> | --key=<bing_api_key> | --file=<filename> --key=<bing_api_key>]
-        crawtext.py restart <project> 
-        crawtext.py stop <project> 
-        crawtext.py report <project> [(--email=<email> --u=<user> --p=<passwd>)| --o=<outfile>]
-        crawtext.py export (results|sources|logs|queue)  <project> [--o=<outfile>]
-        crawtext.py (-h | --help)
-        crawtext.py --version
-
-    Options:
-        [crawl] launch a crawl on a specific query using the existing source database
-        [discover] launch a crawl on a specific query using a textfile AND/OR a search query on Bing
-        [restart] restart the current process
-        [stop] clean the current process
-        [report] simple stats on database send by mail OR stored in file OR printed in cmd
-        [export] export the specified <collection> to specified format <JSON/CSV>
-        --file Complete path of the sourcefile.
-        --o Outfile format for export
-        --key  Bing API Key for SearchNY.
-        --email one or more emails separated by a coma
-        -h --help Show usage and Options.
-        --version Show versions.  
-
-
+Usage:
+	crawtext.py archive [ -f (default|wiki|forum) ] <url>
+	crawtext.py <name>
+	crawtext.py <email>
+	crawtext.py report <name>
+	crawtext.py export <name>
+	crawtext.py delete <name>
+	crawtext.py <name> -u <email>
+	crawtext.py <name> -q <query>
+	crawtext.py <name> -s set <url>
+	crawtext.py <name> -s append <file>
+	crawtext.py <name> -k set <key>
+	crawtext.py <name> -k append <key>
+	crawtext.py <name> -s expand
+	crawtext.py <name> -s delete [<url>]
+	crawtext.py <name> -s delete					
+	crawtext.py <name> -r (monthly|weekly|daily)
+	crawtext.py (-h | --help)
+  	crawtext.py --version
+  	
+Options:
+	Projets:
+	# Pour consulter un projet : 	crawtext pesticides
+	# Pour consulter vos projets :	crawtext show vous@cortext.net
+	# Pour obtenir un rapport : 	crawtext report pesticides
+	# Pour obtenir un export : 		crawtext export pesticides
+	# Pour supprimer un projet : 	crawtext delete pesticides
+	Proprietaire:
+	# pour définir le propriétaire du project: crawtext pesticides -u vous@cortext.net
+	Requête:
+	# pour définir la requête: crawtext pesticides -q "pesticides AND DDT"
+	Sources:
+	# pour définir les sources d'après un fichier :	crawtext pesticides -s set sources.txt	
+	# pour ajouter des sources d'après un fichier :	crawtext pesticides -s append sources.txt
+	# pour définir les sources d'après Bing :		crawtext pesticides -k set 12237675647
+	# pour ajouter des sources d'après Bing :		crawtext pesticides -k append 12237675647
+	# pour ajouter des sources automatiquement :	crawtext pesticides -s expand
+	# pour supprimer une source :					crawtext pesticides -s delete www.latribune.fr
+	# pour supprimer toutes les sources :			crawtext pesticides -s delete
+	Récurrence
+	# pour définir la récurrence :                	crawtext pesticides -r monthly|weekly|daily
+'''
 Examples
 -----------------------------
 *   Discover with search:
