@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractmethod
 from page2 import Page
 from validate_email import validate_email
 import docopt
-from utils import yes_no
+from utils import yes_or_no
 
 class Scheduler(object):
 	''' main access to Job Database'''
@@ -26,11 +26,12 @@ class Scheduler(object):
 				#show all the project of the owner
 				if self.select_job(j, "user") is None:
 					print "User:%s is not already registered" %j["user"]
+					print "To register you as user:\n1/ Create a new project: python crawtext.py mynewproject\n2/Set Ownership: python crawtext.py mynewproject -u you@cortext.net" %j["user"]
 				else:
 					self.select_job(j,"user")
 				return 
 			#enter with single project name					
-			if j['name'] is not None: 	
+			if j['name'] is not None and j['action'] is None: 	
 				if j['name'] in ["crawl", "delete", "archive", "report", "export"]:
 					print "**Project Name** can't be 'crawl', 'archive', 'report', 'export' or 'delete'"
 					print "\t*To generate a report:\n\t\tcrawtext report pesticides"
